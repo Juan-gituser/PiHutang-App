@@ -287,7 +287,7 @@
                                 <p class="text-xs font-black uppercase tracking-widest text-zinc-400">Saldo Bersih</p>
                             </div>
                             <p id="dashNetWorth" class="text-4xl md:text-5xl font-black relative z-10 tracking-tight">Rp 0</p>
-                            <p class="text-sm text-zinc-400 mt-3 font-medium">(Uang Anda di Luar) dikurangi (Uang Pinjaman Anda)</p>
+                            <p class="text-sm text-zinc-400 mt-3 font-medium">(Piutang) dikurangi (Utang)</p>
                         </div>
                         
                         <!-- Uang Keluar (Piutang) -->
@@ -311,7 +311,7 @@
 
                     <!-- Chart -->
                     <div class="p-8 rounded-3xl bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 shadow-sm flex flex-col items-center justify-center min-h-[300px]">
-                        <h3 class="text-xs font-black text-zinc-400 uppercase tracking-widest mb-6 w-full text-center">Proporsi Saldo Belum Lunas</h3>
+                        <h3 class="text-xs font-black text-zinc-400 uppercase tracking-widest mb-6 w-full text-center">Grafik Saldo</h3>
                         <div class="w-full relative h-[200px]">
                             <canvas id="balanceChart"></canvas>
                         </div>
@@ -323,7 +323,7 @@
             <section id="tab-catat" class="hidden-tab fade-in max-w-2xl mx-auto space-y-6">
                 <header class="mb-8">
                     <h2 class="text-3xl font-black tracking-tight">Catat Transaksi Baru 📝</h2>
-                    <p class="text-zinc-500 mt-2 font-medium">Rekam setiap transaksi ke Cloud agar tercatat rapi.</p>
+                    <p class="text-zinc-500 mt-2 font-medium">Rekam setiap transaksi agar tercatat rapi.</p>
                 </header>
                 
                 <div class="p-6 md:p-8 rounded-3xl bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 shadow-xl">
@@ -339,7 +339,7 @@
                         </div>
 
                         <div>
-                            <label class="block text-sm font-bold mb-2">Tenggat Waktu Pembayaran (Deadline)</label>
+                            <label class="block text-sm font-bold mb-2">Jatuh Tempo</label>
                             <input type="date" id="formDueDate" class="w-full p-4 rounded-xl bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 focus:ring-2 focus:ring-indigo-500 outline-none transition-all font-bold dark:text-white" required />
                         </div>
 
@@ -397,7 +397,7 @@
                             <thead>
                                 <tr class="bg-zinc-50 dark:bg-zinc-950/50 border-b border-zinc-200 dark:border-zinc-800">
                                     <th class="p-4 text-xs font-black text-zinc-500 uppercase tracking-widest">Informasi Pihak</th>
-                                    <th class="p-4 text-xs font-black text-zinc-500 uppercase tracking-widest">Tenggat Waktu</th>
+                                    <th class="p-4 text-xs font-black text-zinc-500 uppercase tracking-widest">Jatuh Tempo</th>
                                     <th class="p-4 text-xs font-black text-zinc-500 uppercase tracking-widest">Progress Bayar</th>
                                     <th class="p-4 text-xs font-black text-zinc-500 uppercase tracking-widest">Sisa Saldo</th>
                                     <th class="p-4 text-xs font-black text-zinc-500 uppercase tracking-widest text-right">Tindakan</th>
@@ -415,7 +415,7 @@
             <section id="tab-teman" class="hidden-tab fade-in max-w-6xl mx-auto space-y-6">
                 <header class="mb-6">
                     <h2 class="text-3xl font-black tracking-tight">Reputasi & Skor Rekan 🌟</h2>
-                    <p class="text-zinc-500 mt-2 font-medium">Analisis kedisiplinan dan kepercayaan berdasarkan riwayat transaksi di Cloud.</p>
+                    <p class="text-zinc-500 mt-2 font-medium">Analisis kedisiplinan dan kepercayaan berdasarkan riwayat transaksi.</p>
                 </header>
                 <div class="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-3xl overflow-hidden shadow-sm">
                     <div class="overflow-x-auto">
@@ -425,7 +425,7 @@
                                     <th class="p-4 text-xs font-black text-zinc-500 uppercase tracking-widest">Nama Rekan</th>
                                     <th class="p-4 text-xs font-black text-zinc-500 uppercase tracking-widest">Reputasi</th>
                                     <th class="p-4 text-xs font-black text-zinc-500 uppercase tracking-widest">Skor Kredit</th>
-                                    <th class="p-4 text-xs font-black text-zinc-500 uppercase tracking-widest">Total Transaksi Keluar</th>
+                                    <th class="p-4 text-xs font-black text-zinc-500 uppercase tracking-widest">Total Transaksi</th>
                                     <th class="p-4 text-xs font-black text-zinc-500 uppercase tracking-widest text-right">Tindakan Khusus</th>
                                 </tr>
                             </thead>
@@ -543,13 +543,13 @@
                             <i class="ph ph-arrow-right text-zinc-300 dark:text-zinc-700"></i>
                             <span class="inline-flex items-center gap-1.5 text-xs font-bold bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-full px-3 py-1.5"><i class="ph-fill ph-money text-emerald-500"></i> Nominal</span>
                             <i class="ph ph-arrow-right text-zinc-300 dark:text-zinc-700"></i>
-                            <span class="inline-flex items-center gap-1.5 text-xs font-bold bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-full px-3 py-1.5"><i class="ph-fill ph-calendar-check text-amber-500"></i> Tenggat Waktu</span>
+                            <span class="inline-flex items-center gap-1.5 text-xs font-bold bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-full px-3 py-1.5"><i class="ph-fill ph-calendar-check text-amber-500"></i> Jatuh Tempo</span>
                             <i class="ph ph-arrow-right text-zinc-300 dark:text-zinc-700"></i>
                             <span class="inline-flex items-center gap-1.5 text-xs font-bold bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-full px-3 py-1.5"><i class="ph-fill ph-swap text-violet-500"></i> Jenis Transaksi</span>
                             <i class="ph ph-arrow-right text-zinc-300 dark:text-zinc-700"></i>
                             <span class="inline-flex items-center gap-1.5 text-xs font-bold bg-indigo-600 text-white rounded-full px-3 py-1.5"><i class="ph-fill ph-floppy-disk"></i> Simpan Transaksi</span>
                         </div>
-                        <p class="text-sm text-zinc-500 font-medium leading-relaxed">Buka menu <strong>Catat Transaksi</strong> di sidebar, lalu isi nama rekan, nominal, dan tenggat waktu pembayaran. Pilih jenis transaksi: <strong>Uang Keluar</strong> jika Anda meminjamkan dana, atau <strong>Uang Masuk</strong> jika Anda menerima pinjaman. Tekan <strong>Simpan Transaksi</strong> dan catatan langsung tersinkronisasi ke Cloud serta muncul di menu Daftar Tagihan.</p>
+                        <p class="text-sm text-zinc-500 font-medium leading-relaxed">Buka menu <strong>Catat Transaksi</strong> di sidebar, lalu isi nama rekan, nominal, dan Jatuh Tempo. Pilih jenis transaksi: <strong>Uang Keluar</strong> jika Anda meminjamkan dana, atau <strong>Uang Masuk</strong> jika Anda menerima pinjaman. Tekan <strong>Simpan Transaksi</strong> dan catatan langsung tersinkronisasi ke Cloud serta muncul di menu Daftar Tagihan.</p>
                     </div>
                 </details>
 
