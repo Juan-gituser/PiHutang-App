@@ -107,8 +107,6 @@
 
         <!-- Main Content Area -->
         <main class="flex-1 h-full overflow-y-auto relative p-6 lg:p-10 scroll-smooth dark:bg-zinc-950 dark:text-zinc-100">
-            <div class="absolute right-6 top-5 z-30 flex items-center gap-2 lg:right-10 lg:top-7"><button onclick="window.openSettingsModal()" aria-label="Pengaturan" class="flex h-11 w-11 items-center justify-center rounded-xl border border-zinc-200 bg-white text-zinc-600 shadow-sm transition hover:bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-300"><i class="ph ph-gear-six text-xl"></i></button><button onclick="window.openProfileModal()" class="flex items-center gap-2 rounded-xl border border-zinc-200 bg-white py-1.5 pl-1.5 pr-3 shadow-sm transition hover:bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-900"><span id="profileAvatar" class="flex h-8 w-8 items-center justify-center rounded-lg bg-indigo-600 text-xs font-black text-white">P</span><span id="profileName" class="hidden max-w-28 truncate text-sm font-black sm:block">Profil</span></button></div>
-            
             <!-- Mobile Header Toggle -->
             <div class="lg:hidden flex items-center gap-4 mb-8 pb-4 border-b border-zinc-200 dark:border-zinc-800">
                 <button onclick="window.toggleSidebar(true)" class="p-2 bg-white dark:bg-zinc-800 rounded-lg shadow-sm border border-zinc-200 dark:border-zinc-700 text-zinc-700 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-zinc-700 transition-colors">
@@ -127,6 +125,7 @@
 
             <!-- TAB 1: DASHBOARD -->
             <section id="tab-dashboard" class="hidden-tab fade-in max-w-5xl mx-auto space-y-6">
+                <div class="absolute right-6 top-5 z-30 flex items-center gap-2 lg:right-10 lg:top-7"><button onclick="window.openSettingsModal()" aria-label="Pengaturan" class="flex h-11 w-11 items-center justify-center rounded-xl border border-zinc-200 bg-white text-zinc-600 shadow-sm transition hover:bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-300"><i class="ph ph-gear-six text-xl"></i></button><button onclick="window.openProfileModal()" class="flex items-center gap-2 rounded-xl border border-zinc-200 bg-white py-1.5 pl-1.5 pr-3 shadow-sm transition hover:bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-900"><span id="profileAvatar" class="flex h-8 w-8 items-center justify-center rounded-lg bg-indigo-600 text-xs font-black text-white">P</span><span id="profileName" class="hidden max-w-28 truncate text-sm font-black sm:block">Profil</span></button></div>
                 <header class="mb-8">
                     <h2 class="text-3xl lg:text-4xl font-black tracking-tight">Halo, Selamat Datang! 👋</h2>
                     <p class="text-zinc-500 mt-2 font-medium">Pantau ringkasan arus kas dan relasi Anda di sini.</p>
