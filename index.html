@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PiHutang App - Cloud Edition</title>
+    <title>PiHutang App</title>
     
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -294,7 +294,7 @@
                         <div class="p-6 rounded-3xl bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 shadow-sm border-b-4 border-b-emerald-400">
                             <div class="flex items-center gap-3 mb-4">
                                 <div class="p-3 bg-emerald-50 dark:bg-emerald-500/10 rounded-xl"><i class="ph ph-trend-up text-2xl text-emerald-500"></i></div>
-                                <p class="text-xs font-black uppercase tracking-widest text-zinc-500">Uang Keluar</p>
+                                <p class="text-xs font-black uppercase tracking-widest text-zinc-500">Uang Keluar (Piutang)</p>
                             </div>
                             <p id="dashLent" class="text-2xl md:text-3xl font-black tracking-tight">Rp 0</p>
                         </div>
@@ -303,7 +303,7 @@
                         <div class="p-6 rounded-3xl bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 shadow-sm border-b-4 border-b-rose-400">
                             <div class="flex items-center gap-3 mb-4">
                                 <div class="p-3 bg-rose-50 dark:bg-rose-500/10 rounded-xl"><i class="ph ph-trend-down text-2xl text-rose-500"></i></div>
-                                <p class="text-xs font-black uppercase tracking-widest text-zinc-500">Uang Masuk (Hutang)</p>
+                                <p class="text-xs font-black uppercase tracking-widest text-zinc-500">Uang Masuk (Utang)</p>
                             </div>
                             <p id="dashDebt" class="text-2xl md:text-3xl font-black tracking-tight">Rp 0</p>
                         </div>
@@ -359,7 +359,7 @@
                                     <div class="p-5 rounded-xl bg-zinc-50 dark:bg-zinc-950 border-2 border-transparent peer-checked:border-rose-500 peer-checked:bg-rose-50 dark:peer-checked:bg-rose-500/10 transition-all text-center">
                                         <i class="ph ph-trend-down text-3xl mx-auto text-rose-500 mb-2 group-hover:translate-y-1 transition-transform block"></i>
                                         <div class="font-black">Uang Masuk</div>
-                                        <div class="text-[10px] font-bold text-zinc-500 uppercase tracking-wide mt-1">Anda Menerima Pinjaman</div>
+                                        <div class="text-[10px] font-bold text-zinc-500 uppercase tracking-wide mt-1">Anda Meminjam</div>
                                     </div>
                                 </label>
                             </div>
@@ -680,7 +680,7 @@
             <p class="text-sm text-zinc-500 mb-8 font-medium" id="confirmMessage">Apakah Anda yakin?</p>
             <div class="flex gap-3">
                 <button onclick="window.closeConfirm()" class="flex-1 py-3 bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 rounded-lg text-sm font-bold transition-colors">Batal</button>
-                <button id="confirmBtn" class="flex-1 py-3 bg-rose-600 text-white hover:bg-rose-700 rounded-lg text-sm font-bold transition-colors">Yakin Eksekusi</button>
+                <button id="confirmBtn" class="flex-1 py-3 bg-rose-600 text-white hover:bg-rose-700 rounded-lg text-sm font-bold transition-colors">Ya</button>
             </div>
         </div>
     </div>
@@ -1274,12 +1274,12 @@
         };
 
         const navItems = [
-            { id: 'dashboard', icon: 'ph-squares-four', label: 'Ringkasan Utama' },
+            { id: 'dashboard', icon: 'ph-squares-four', label: 'Dashboard' },
             { id: 'catat', icon: 'ph-plus-circle', label: 'Catat Transaksi' },
             { id: 'tagihan', icon: 'ph-file-text', label: 'Daftar Tagihan' },
-            { type: 'divider', label: 'Data & Relasi Cloud' },
-            { id: 'teman', icon: 'ph-users', label: 'Reputasi Rekan' },
-            { id: 'blacklist', icon: 'ph-warning', label: 'Daftar Peringatan', isDanger: true },
+            { type: 'divider', label: 'Data & Relasi' },
+            { id: 'teman', icon: 'ph-users', label: 'Data Reputasi' },
+            { id: 'blacklist', icon: 'ph-warning', label: 'Blacklist', isDanger: true },
             { type: 'divider', label: 'Bantuan & Info' },
             { id: 'panduan', icon: 'ph-book-open', label: 'Panduan Aplikasi' },
         ];
@@ -1360,7 +1360,7 @@
             state.chartInstance = new Chart(ctx, {
                 type: 'doughnut',
                 data: {
-                    labels: ['Dana Keluar (Piutang)', 'Dana Masuk (Hutang)'],
+                    labels: ['Dana Keluar (Piutang)', 'Dana Masuk (Utang)'],
                     datasets: [{
                         data: [totalLent || 0.1, totalDebt || 0.1],
                         backgroundColor: ['#10b981', '#f43f5e'],
