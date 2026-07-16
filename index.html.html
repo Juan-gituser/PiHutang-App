@@ -1,0 +1,1504 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PiHutang App - Cloud Edition</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Tailwind Config for Dark Mode -->
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+
+    <!-- Google Fonts: Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    
+    <!-- Phosphor Icons -->
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    
+    <!-- Chart.js for Visualization -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        
+        /* Custom Scrollbar for a cleaner look */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background-color: #d4d4d8; border-radius: 10px; }
+        .dark ::-webkit-scrollbar-thumb { background-color: #3f3f46; }
+        
+        /* Animations */
+        .fade-in { animation: fadeIn 0.4s ease-out forwards; }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .modal-zoom { animation: zoomIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+        @keyframes zoomIn {
+            from { opacity: 0; transform: scale(0.95); }
+            to { opacity: 1; transform: scale(1); }
+        }
+        
+        /* Toast Animation */
+        .toast-slide-up { animation: toastSlideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+        @keyframes toastSlideUp {
+            from { opacity: 0; transform: translate(-50%, 20px); }
+            to { opacity: 1; transform: translate(-50%, 0); }
+        }
+        
+        /* Hide element utility */
+        .hidden-tab { display: none !important; }
+        .splash-logo { animation: splashLogo 1.1s cubic-bezier(.16,1,.3,1) both; }
+        .splash-text { animation: splashText .7s .35s ease-out both; }
+        .auth-card { animation: authCard .5s cubic-bezier(.16,1,.3,1) both; }
+        
+        @keyframes splashLogo { from { opacity: 0; transform: scale(.55) rotate(-12deg); } 70% { transform: scale(1.08) rotate(3deg); } to { opacity: 1; transform: scale(1) rotate(0); } }
+        @keyframes splashText { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes authCard { from { opacity: 0; transform: translateY(20px) scale(.97); } to { opacity: 1; transform: translateY(0) scale(1); } }
+        
+        .setting-row { width: 100%; display: flex; align-items: center; justify-content: space-between; gap: 1rem; padding: .85rem 1rem; text-align: left; font-weight: 700; }
+        .setting-row span { color: #71717a; font-weight: 600; }
+        .setting-row input { accent-color: #4f46e5; width: 1.1rem; height: 1.1rem; }
+        .setting-action { border: 1px solid #e4e4e7; border-radius: .75rem; padding: .8rem; font-weight: 700; transition: background .2s; }
+        .setting-action:hover { background: #f4f4f5; }
+        .dark .setting-action { border-color: #27272a; }
+        .dark .setting-action:hover { background: #27272a; }
+        
+        /* Modern Auth Animations */
+        @keyframes blobFloat {
+            0% { transform: translate(0, 0) scale(1); }
+            33% { transform: translate(30px, -50px) scale(1.1); }
+            66% { transform: translate(-20px, 20px) scale(0.9); }
+            100% { transform: translate(0, 0) scale(1); }
+        }
+        .animate-blob { animation: blobFloat 10s infinite alternate cubic-bezier(0.4, 0, 0.2, 1); }
+        .animation-delay-2000 { animation-delay: 2s; }
+        .animation-delay-4000 { animation-delay: 4s; }
+    </style>
+</head>
+<body class="bg-zinc-50 text-zinc-900 transition-colors duration-300 antialiased overflow-hidden">
+    
+    <div id="splashScreen" class="fixed inset-0 z-[200] flex flex-col items-center justify-center overflow-hidden bg-gradient-to-br from-indigo-700 via-indigo-600 to-violet-700 text-white">
+        <div class="absolute -top-24 -left-20 h-72 w-72 rounded-full bg-white/10 blur-3xl"></div><div class="absolute -bottom-20 -right-16 h-80 w-80 rounded-full bg-violet-300/20 blur-3xl"></div>
+        <div class="splash-logo relative flex h-24 w-24 items-center justify-center rounded-[2rem] bg-white text-indigo-600 shadow-2xl"><i class="ph-fill ph-wallet text-5xl"></i></div>
+        <div class="splash-text mt-6 text-center"><h1 class="text-4xl font-black tracking-tighter">PiHutang</h1><p class="mt-2 text-sm font-bold text-indigo-100">Catat. Pantau. Tenang.</p></div>
+    </div>
+    
+    <div id="authScreen" class="hidden fixed inset-0 z-[190] overflow-y-auto bg-zinc-50 dark:bg-zinc-950 flex items-center justify-center p-5 relative">
+        
+        <!-- Animated Background Blobs -->
+        <div class="fixed top-[-10%] left-[-10%] w-96 h-96 rounded-full bg-indigo-500/30 blur-[100px] animate-blob pointer-events-none"></div>
+        <div class="fixed bottom-[-10%] right-[-10%] w-96 h-96 rounded-full bg-violet-500/30 blur-[100px] animate-blob animation-delay-2000 pointer-events-none"></div>
+        <div class="fixed top-[40%] left-[60%] w-72 h-72 rounded-full bg-sky-500/20 blur-[100px] animate-blob animation-delay-4000 pointer-events-none"></div>
+
+        <!-- Form Login -->
+        <form id="loginForm" class="auth-card relative z-10 w-full max-w-md rounded-[2.5rem] bg-white/80 p-8 shadow-[0_8px_30px_rgb(0,0,0,0.08)] ring-1 ring-white/50 backdrop-blur-2xl transition-all dark:bg-zinc-900/80 dark:shadow-[0_8px_30px_rgb(0,0,0,0.5)] dark:ring-zinc-800/50" onsubmit="window.handleLogin(event)">
+            <div class="mb-10 text-center">
+                <div class="mx-auto mb-5 flex h-20 w-20 items-center justify-center rounded-3xl bg-gradient-to-br from-indigo-500 to-violet-600 text-white shadow-[0_8px_30px_rgb(79,70,229,0.3)]"><i class="ph-fill ph-wallet text-4xl"></i></div>
+                <h2 class="text-3xl font-black tracking-tight text-zinc-900 dark:text-white">Selamat Datang</h2>
+                <p class="mt-2 text-sm font-medium text-zinc-500 dark:text-zinc-400">Masuk untuk mengelola finansial Anda.</p>
+            </div>
+            
+            <label class="mb-2 block text-xs font-black uppercase tracking-wide text-zinc-500">Email Akses</label>
+            <div class="relative mb-5 group">
+                <i class="ph-fill ph-envelope absolute left-4 top-1/2 -translate-y-1/2 text-xl text-zinc-400 transition-colors group-focus-within:text-indigo-600 dark:group-focus-within:text-indigo-400"></i>
+                <input id="loginEmail" type="email" autocomplete="email" placeholder="contoh@email.com" class="w-full rounded-2xl border border-zinc-200/80 bg-white/50 p-4 pl-12 font-bold outline-none transition-all focus:border-indigo-500 focus:bg-white focus:ring-4 focus:ring-indigo-500/10 dark:border-zinc-800 dark:bg-zinc-950/50 dark:text-white dark:focus:border-indigo-500 dark:focus:bg-zinc-900" required />
+            </div>
+            
+            <label class="mb-2 block text-xs font-black uppercase tracking-wide text-zinc-500">Kata Sandi</label>
+            <div class="relative group">
+                <i class="ph-fill ph-lock-key absolute left-4 top-1/2 -translate-y-1/2 text-xl text-zinc-400 transition-colors group-focus-within:text-indigo-600 dark:group-focus-within:text-indigo-400"></i>
+                <input id="loginPassword" type="password" autocomplete="current-password" placeholder="Masukkan password" class="w-full rounded-2xl border border-zinc-200/80 bg-white/50 p-4 pl-12 font-bold outline-none transition-all focus:border-indigo-500 focus:bg-white focus:ring-4 focus:ring-indigo-500/10 dark:border-zinc-800 dark:bg-zinc-950/50 dark:text-white dark:focus:border-indigo-500 dark:focus:bg-zinc-900" required />
+            </div>
+            
+            <p id="loginError" class="mt-4 hidden rounded-xl bg-rose-50 p-3 text-center text-sm font-bold text-rose-600 dark:bg-rose-500/10 dark:text-rose-400"></p>
+            
+            <button id="btnLogin" type="submit" class="group relative mt-8 flex w-full items-center justify-center gap-2 overflow-hidden rounded-2xl bg-gradient-to-r from-indigo-600 to-violet-600 py-4 font-black text-white shadow-[0_8px_30px_rgb(79,70,229,0.3)] transition-all hover:scale-[1.02] hover:shadow-[0_8px_40px_rgb(79,70,229,0.4)] active:scale-[0.98] disabled:opacity-50 disabled:hover:scale-100">
+                <span class="absolute inset-0 translate-y-full bg-white/20 transition-transform duration-300 ease-in-out group-hover:translate-y-0"></span>
+                <span class="relative flex items-center gap-2"><i class="ph-fill ph-sign-in text-xl"></i> Masuk Sistem</span>
+            </button>
+            
+            <div class="mt-8 flex items-center justify-between border-t border-zinc-200/50 pt-6 text-sm font-bold dark:border-zinc-800/50">
+                <button type="button" onclick="window.switchAuth('register')" class="text-zinc-500 transition-colors hover:text-indigo-600 dark:hover:text-indigo-400">Buat Akun Baru</button>
+                <button type="button" onclick="window.switchAuth('forgot')" class="text-zinc-500 transition-colors hover:text-indigo-600 dark:hover:text-indigo-400">Lupa Password?</button>
+            </div>
+        </form>
+
+        <!-- Form Register -->
+        <form id="registerForm" class="hidden auth-card relative z-10 w-full max-w-md rounded-[2.5rem] bg-white/80 p-8 shadow-[0_8px_30px_rgb(0,0,0,0.08)] ring-1 ring-white/50 backdrop-blur-2xl transition-all dark:bg-zinc-900/80 dark:shadow-[0_8px_30px_rgb(0,0,0,0.5)] dark:ring-zinc-800/50" onsubmit="window.handleRegister(event)">
+            <div class="mb-8 text-center">
+                <h2 class="text-3xl font-black tracking-tight text-zinc-900 dark:text-white">Buat Akun Baru</h2>
+                <p class="mt-2 text-sm font-medium text-zinc-500 dark:text-zinc-400">Bergabung dan kelola finansial di Cloud.</p>
+            </div>
+            
+            <div class="space-y-4">
+                <div>
+                    <label class="mb-2 block text-[11px] font-black uppercase tracking-widest text-zinc-500">Nama Lengkap</label>
+                    <div class="relative group">
+                        <i class="ph-fill ph-user absolute left-4 top-1/2 -translate-y-1/2 text-lg text-zinc-400 transition-colors group-focus-within:text-indigo-600 dark:group-focus-within:text-indigo-400"></i>
+                        <input id="regName" type="text" placeholder="John Doe" class="w-full rounded-2xl border border-zinc-200/80 bg-white/50 p-3.5 pl-12 font-bold outline-none transition-all focus:border-indigo-500 focus:bg-white focus:ring-4 focus:ring-indigo-500/10 dark:border-zinc-800 dark:bg-zinc-950/50 dark:text-white dark:focus:border-indigo-500 dark:focus:bg-zinc-900" required />
+                    </div>
+                </div>
+                <div>
+                    <label class="mb-2 block text-[11px] font-black uppercase tracking-widest text-zinc-500">Email</label>
+                    <div class="relative group">
+                        <i class="ph-fill ph-envelope absolute left-4 top-1/2 -translate-y-1/2 text-lg text-zinc-400 transition-colors group-focus-within:text-indigo-600 dark:group-focus-within:text-indigo-400"></i>
+                        <input id="regEmail" type="email" placeholder="contoh@email.com" class="w-full rounded-2xl border border-zinc-200/80 bg-white/50 p-3.5 pl-12 font-bold outline-none transition-all focus:border-indigo-500 focus:bg-white focus:ring-4 focus:ring-indigo-500/10 dark:border-zinc-800 dark:bg-zinc-950/50 dark:text-white dark:focus:border-indigo-500 dark:focus:bg-zinc-900" required />
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="mb-2 block text-[11px] font-black uppercase tracking-widest text-zinc-500">Password</label>
+                        <input id="regPassword" type="password" minlength="6" placeholder="Min. 6 char" class="w-full rounded-2xl border border-zinc-200/80 bg-white/50 p-3.5 text-center font-bold outline-none transition-all focus:border-indigo-500 focus:bg-white focus:ring-4 focus:ring-indigo-500/10 dark:border-zinc-800 dark:bg-zinc-950/50 dark:text-white dark:focus:border-indigo-500 dark:focus:bg-zinc-900" required />
+                    </div>
+                    <div>
+                        <label class="mb-2 block text-[11px] font-black uppercase tracking-widest text-zinc-500">Ulangi Pass</label>
+                        <input id="regConfirm" type="password" minlength="6" placeholder="Ketik ulang" class="w-full rounded-2xl border border-zinc-200/80 bg-white/50 p-3.5 text-center font-bold outline-none transition-all focus:border-indigo-500 focus:bg-white focus:ring-4 focus:ring-indigo-500/10 dark:border-zinc-800 dark:bg-zinc-950/50 dark:text-white dark:focus:border-indigo-500 dark:focus:bg-zinc-900" required />
+                    </div>
+                </div>
+                
+                <!-- Keamanan Captcha Modern -->
+                <div class="mt-2 rounded-2xl border border-indigo-100 bg-indigo-50/50 p-4 backdrop-blur-sm dark:border-indigo-900/30 dark:bg-indigo-900/10">
+                    <label class="mb-3 flex items-center gap-1.5 text-[11px] font-black tracking-widest text-indigo-600 dark:text-indigo-400"><i class="ph-fill ph-shield-check text-lg"></i> VERIFIKASI KEAMANAN</label>
+                    <div class="flex items-center gap-3">
+                        <div id="captchaQuestion" class="flex w-24 items-center justify-center rounded-xl border border-indigo-100 bg-white py-3 text-lg font-black tracking-widest text-indigo-700 shadow-sm dark:border-indigo-900/50 dark:bg-zinc-900 dark:text-indigo-300">? + ?</div>
+                        <span class="text-xl font-black text-zinc-400">=</span>
+                        <input id="regCaptcha" type="number" placeholder="Jawaban" class="flex-1 rounded-xl border border-zinc-200/80 bg-white/50 p-3 text-center text-lg font-black outline-none transition-all focus:border-indigo-500 focus:bg-white focus:ring-4 focus:ring-indigo-500/10 dark:border-zinc-800 dark:bg-zinc-950/50 dark:text-white dark:focus:border-indigo-500 dark:focus:bg-zinc-900" required />
+                    </div>
+                </div>
+            </div>
+
+            <p id="regError" class="mt-4 hidden rounded-xl bg-rose-50 p-3 text-center text-sm font-bold text-rose-600 dark:bg-rose-500/10 dark:text-rose-400"></p>
+            
+            <button id="btnRegister" type="submit" class="group relative mt-6 flex w-full items-center justify-center gap-2 overflow-hidden rounded-2xl bg-gradient-to-r from-indigo-600 to-violet-600 py-4 font-black text-white shadow-[0_8px_30px_rgb(79,70,229,0.3)] transition-all hover:scale-[1.02] hover:shadow-[0_8px_40px_rgb(79,70,229,0.4)] active:scale-[0.98] disabled:opacity-50 disabled:hover:scale-100">
+                <span class="absolute inset-0 translate-y-full bg-white/20 transition-transform duration-300 ease-in-out group-hover:translate-y-0"></span>
+                <span class="relative flex items-center gap-2"><i class="ph-fill ph-user-plus text-xl"></i> Daftar Sekarang</span>
+            </button>
+            
+            <div class="mt-8 border-t border-zinc-200/50 pt-6 text-center text-sm font-bold dark:border-zinc-800/50">
+                <span class="text-zinc-500">Sudah punya akun? </span>
+                <button type="button" onclick="window.switchAuth('login')" class="text-indigo-600 transition-colors hover:text-indigo-800 dark:text-indigo-400 dark:hover:text-indigo-300">Masuk di sini</button>
+            </div>
+        </form>
+
+        <!-- Form Forgot Password -->
+        <form id="forgotForm" class="hidden auth-card relative z-10 w-full max-w-md rounded-[2.5rem] bg-white/80 p-8 shadow-[0_8px_30px_rgb(0,0,0,0.08)] ring-1 ring-white/50 backdrop-blur-2xl transition-all dark:bg-zinc-900/80 dark:shadow-[0_8px_30px_rgb(0,0,0,0.5)] dark:ring-zinc-800/50" onsubmit="window.handleForgot(event)">
+            <div class="mb-10 text-center">
+                <div class="mx-auto mb-5 flex h-20 w-20 items-center justify-center rounded-3xl bg-gradient-to-br from-rose-400 to-rose-600 text-white shadow-[0_8px_30px_rgb(225,29,72,0.3)]"><i class="ph-fill ph-lock-key text-4xl"></i></div>
+                <h2 class="text-3xl font-black tracking-tight text-zinc-900 dark:text-white">Lupa Password?</h2>
+                <p class="mt-2 text-sm font-medium text-zinc-500 dark:text-zinc-400">Masukkan email untuk menerima link reset keamanan.</p>
+            </div>
+            
+            <label class="mb-2 block text-xs font-black uppercase tracking-wide text-zinc-500">Email Terdaftar</label>
+            <div class="relative mb-5 group">
+                <i class="ph-fill ph-envelope absolute left-4 top-1/2 -translate-y-1/2 text-xl text-zinc-400 transition-colors group-focus-within:text-rose-500"></i>
+                <input id="forgotEmail" type="email" placeholder="contoh@email.com" class="w-full rounded-2xl border border-zinc-200/80 bg-white/50 p-4 pl-12 font-bold outline-none transition-all focus:border-rose-500 focus:bg-white focus:ring-4 focus:ring-rose-500/10 dark:border-zinc-800 dark:bg-zinc-950/50 dark:text-white dark:focus:border-rose-500 dark:focus:bg-zinc-900" required />
+            </div>
+            
+            <p id="forgotError" class="mb-5 mt-2 hidden rounded-xl bg-rose-50 p-3 text-center text-sm font-bold text-rose-600 dark:bg-rose-500/10 dark:text-rose-400"></p>
+
+            <button id="btnForgot" type="submit" class="group relative mt-2 flex w-full items-center justify-center gap-2 overflow-hidden rounded-2xl bg-zinc-900 py-4 font-black text-white shadow-xl transition-all hover:scale-[1.02] hover:shadow-2xl active:scale-[0.98] disabled:opacity-50 disabled:hover:scale-100 dark:bg-white dark:text-black">
+                <span class="absolute inset-0 translate-y-full bg-white/20 transition-transform duration-300 ease-in-out group-hover:translate-y-0 dark:bg-black/10"></span>
+                <span class="relative flex items-center gap-2"><i class="ph-fill ph-paper-plane-tilt text-xl"></i> Kirim Link Reset</span>
+            </button>
+            
+            <div class="mt-8 border-t border-zinc-200/50 pt-6 text-center text-sm font-bold dark:border-zinc-800/50">
+                <button type="button" onclick="window.switchAuth('login')" class="flex items-center justify-center gap-1 text-zinc-500 transition-colors hover:text-zinc-900 dark:hover:text-white"><i class="ph ph-arrow-left"></i> Kembali ke Login</button>
+            </div>
+        </form>
+    </div>
+
+    <div id="app" class="hidden h-screen w-full">
+        <!-- Mobile Sidebar Overlay -->
+        <div id="mobileOverlay" class="fixed inset-0 bg-black/60 z-40 hidden backdrop-blur-sm transition-opacity cursor-pointer" onclick="window.toggleSidebar(false)"></div>
+
+        <!-- Sidebar Navigation -->
+        <aside id="sidebar" class="fixed inset-y-0 left-0 z-50 w-72 bg-white border-r border-zinc-200 transform -translate-x-full lg:translate-x-0 lg:static transition-transform duration-300 flex flex-col h-full shadow-2xl lg:shadow-none dark:bg-zinc-900 dark:border-zinc-800">
+            <div class="p-6 flex items-center justify-between border-b border-zinc-100 dark:border-zinc-800">
+                <h1 class="text-2xl font-black tracking-tighter flex items-center gap-2 text-indigo-600 dark:text-indigo-400">
+                    <i class="ph-fill ph-wallet text-3xl"></i> PiHutang
+                </h1>
+                <button onclick="window.toggleSidebar(false)" class="lg:hidden p-2 text-zinc-400 hover:text-zinc-800 dark:hover:text-white rounded-lg">
+                    <i class="ph ph-x text-xl"></i>
+                </button>
+            </div>
+
+            <nav class="flex-1 px-4 py-6 space-y-2 overflow-y-auto" id="navMenu">
+                <!-- Nav items generated via JS -->
+            </nav>
+
+            <div class="p-6 border-t border-zinc-100 dark:border-zinc-800">
+                <button onclick="window.toggleDarkMode()" id="darkModeBtn" class="w-full flex items-center justify-center gap-3 px-4 py-3 rounded-xl font-bold text-sm bg-zinc-100 text-zinc-600 hover:bg-zinc-200 dark:bg-zinc-800 dark:text-zinc-300 dark:hover:bg-zinc-700 transition-all">
+                    <i class="ph ph-moon text-xl" id="darkModeIcon"></i>
+                    <span id="darkModeText">Mode Gelap</span>
+                </button>
+            </div>
+        </aside>
+
+        <!-- Main Content Area -->
+        <main class="flex-1 h-full overflow-y-auto relative p-6 lg:p-10 scroll-smooth dark:bg-zinc-950 dark:text-zinc-100">
+            <!-- Mobile Header Toggle -->
+            <div class="lg:hidden flex items-center gap-4 mb-8 pb-4 border-b border-zinc-200 dark:border-zinc-800">
+                <button onclick="window.toggleSidebar(true)" class="p-2 bg-white dark:bg-zinc-800 rounded-lg shadow-sm border border-zinc-200 dark:border-zinc-700 text-zinc-700 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-zinc-700 transition-colors">
+                    <i class="ph ph-list text-xl"></i>
+                </button>
+                <h2 class="text-xl font-black text-indigo-600 dark:text-indigo-400 flex items-center gap-2">
+                    <i class="ph-fill ph-wallet text-2xl"></i> PiHutang
+                </h2>
+            </div>
+
+            <!-- TAB 1: DASHBOARD -->
+            <section id="tab-dashboard" class="hidden-tab fade-in max-w-5xl mx-auto space-y-6">
+                <div class="absolute right-6 top-5 z-30 flex items-center gap-2 lg:right-10 lg:top-7">
+                    <button onclick="window.openSettingsModal()" aria-label="Pengaturan" class="flex h-11 w-11 items-center justify-center rounded-xl border border-zinc-200 bg-white text-zinc-600 shadow-sm transition hover:bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-300">
+                        <i class="ph ph-gear-six text-xl"></i>
+                    </button>
+                    <button onclick="window.openProfileModal()" class="flex items-center gap-2 rounded-xl border border-zinc-200 bg-white py-1.5 pl-1.5 pr-3 shadow-sm transition hover:bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-900">
+                        <span id="profileAvatar" class="flex h-8 w-8 items-center justify-center rounded-lg bg-indigo-600 text-xs font-black text-white">P</span>
+                        <span id="profileName" class="hidden max-w-28 truncate text-sm font-black sm:block">Profil</span>
+                    </button>
+                </div>
+                <header class="mb-8">
+                    <h2 class="text-3xl lg:text-4xl font-black tracking-tight">Halo, Selamat Datang! 👋</h2>
+                    <p class="text-zinc-500 mt-2 font-medium">Pantau ringkasan arus kas dan relasi Anda di sini.</p>
+                </header>
+
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    <div class="lg:col-span-2 grid grid-cols-1 sm:grid-cols-2 gap-6">
+                        <!-- Net Worth -->
+                        <div class="sm:col-span-2 p-8 rounded-3xl bg-gradient-to-br from-zinc-900 to-black dark:from-zinc-100 dark:to-white text-white dark:text-black shadow-xl relative overflow-hidden">
+                            <div class="absolute -right-10 -top-10 w-48 h-48 bg-indigo-500 rounded-full blur-[60px] opacity-20"></div>
+                            <div class="flex items-center gap-2 mb-4 relative z-10">
+                                <i class="ph ph-wallet text-xl text-zinc-400"></i>
+                                <p class="text-xs font-black uppercase tracking-widest text-zinc-400">Saldo Bersih</p>
+                            </div>
+                            <p id="dashNetWorth" class="text-4xl md:text-5xl font-black relative z-10 tracking-tight">Rp 0</p>
+                            <p class="text-sm text-zinc-400 mt-3 font-medium">(Uang Anda di Luar) dikurangi (Uang Pinjaman Anda)</p>
+                        </div>
+                        
+                        <!-- Uang Keluar (Piutang) -->
+                        <div class="p-6 rounded-3xl bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 shadow-sm border-b-4 border-b-emerald-400">
+                            <div class="flex items-center gap-3 mb-4">
+                                <div class="p-3 bg-emerald-50 dark:bg-emerald-500/10 rounded-xl"><i class="ph ph-trend-up text-2xl text-emerald-500"></i></div>
+                                <p class="text-xs font-black uppercase tracking-widest text-zinc-500">Uang Keluar</p>
+                            </div>
+                            <p id="dashLent" class="text-2xl md:text-3xl font-black tracking-tight">Rp 0</p>
+                        </div>
+
+                        <!-- Uang Masuk (Utang) -->
+                        <div class="p-6 rounded-3xl bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 shadow-sm border-b-4 border-b-rose-400">
+                            <div class="flex items-center gap-3 mb-4">
+                                <div class="p-3 bg-rose-50 dark:bg-rose-500/10 rounded-xl"><i class="ph ph-trend-down text-2xl text-rose-500"></i></div>
+                                <p class="text-xs font-black uppercase tracking-widest text-zinc-500">Uang Masuk (Hutang)</p>
+                            </div>
+                            <p id="dashDebt" class="text-2xl md:text-3xl font-black tracking-tight">Rp 0</p>
+                        </div>
+                    </div>
+
+                    <!-- Chart -->
+                    <div class="p-8 rounded-3xl bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 shadow-sm flex flex-col items-center justify-center min-h-[300px]">
+                        <h3 class="text-xs font-black text-zinc-400 uppercase tracking-widest mb-6 w-full text-center">Proporsi Saldo Belum Lunas</h3>
+                        <div class="w-full relative h-[200px]">
+                            <canvas id="balanceChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- TAB 2: CATAT TRANSAKSI -->
+            <section id="tab-catat" class="hidden-tab fade-in max-w-2xl mx-auto space-y-6">
+                <header class="mb-8">
+                    <h2 class="text-3xl font-black tracking-tight">Catat Transaksi Baru 📝</h2>
+                    <p class="text-zinc-500 mt-2 font-medium">Rekam setiap transaksi ke Cloud agar tercatat rapi.</p>
+                </header>
+                
+                <div class="p-6 md:p-8 rounded-3xl bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 shadow-xl">
+                    <form id="formAddTx" onsubmit="window.handleAddTransaction(event)" class="space-y-6">
+                        <div>
+                            <label class="block text-sm font-bold mb-2">Nama Rekan / Pihak Terkait</label>
+                            <input type="text" id="formName" placeholder="Contoh: Budi Susanto" class="w-full p-4 rounded-xl bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 focus:ring-2 focus:ring-indigo-500 outline-none transition-all font-bold dark:text-white" required />
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-bold mb-2">Nominal (Rp)</label>
+                            <input type="number" id="formAmount" placeholder="150000" class="w-full p-4 rounded-xl bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 focus:ring-2 focus:ring-indigo-500 outline-none transition-all font-bold text-xl dark:text-white" required min="1" />
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-bold mb-2">Tenggat Waktu Pembayaran (Deadline)</label>
+                            <input type="date" id="formDueDate" class="w-full p-4 rounded-xl bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 focus:ring-2 focus:ring-indigo-500 outline-none transition-all font-bold dark:text-white" required />
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-bold mb-3">Jenis Transaksi</label>
+                            <div class="flex flex-col sm:flex-row gap-4">
+                                <label class="flex-1 relative cursor-pointer group">
+                                    <input type="radio" name="txType" value="lent" class="peer hidden" checked />
+                                    <div class="p-5 rounded-xl bg-zinc-50 dark:bg-zinc-950 border-2 border-transparent peer-checked:border-emerald-500 peer-checked:bg-emerald-50 dark:peer-checked:bg-emerald-500/10 transition-all text-center">
+                                        <i class="ph ph-trend-up text-3xl mx-auto text-emerald-500 mb-2 group-hover:-translate-y-1 transition-transform block"></i>
+                                        <div class="font-black">Uang Keluar</div>
+                                        <div class="text-[10px] font-bold text-zinc-500 uppercase tracking-wide mt-1">Anda Meminjamkan Dana</div>
+                                    </div>
+                                </label>
+                                <label class="flex-1 relative cursor-pointer group">
+                                    <input type="radio" name="txType" value="owe" class="peer hidden" />
+                                    <div class="p-5 rounded-xl bg-zinc-50 dark:bg-zinc-950 border-2 border-transparent peer-checked:border-rose-500 peer-checked:bg-rose-50 dark:peer-checked:bg-rose-500/10 transition-all text-center">
+                                        <i class="ph ph-trend-down text-3xl mx-auto text-rose-500 mb-2 group-hover:translate-y-1 transition-transform block"></i>
+                                        <div class="font-black">Uang Masuk</div>
+                                        <div class="text-[10px] font-bold text-zinc-500 uppercase tracking-wide mt-1">Anda Menerima Pinjaman</div>
+                                    </div>
+                                </label>
+                            </div>
+                        </div>
+                        
+                        <button type="submit" id="btnSubmitTx" class="w-full bg-indigo-600 text-white py-4 rounded-xl font-black text-lg hover:bg-indigo-700 transition-all shadow-lg flex items-center justify-center gap-2 mt-4 disabled:opacity-50">
+                            <i class="ph ph-floppy-disk text-xl"></i> Simpan ke Cloud
+                        </button>
+                    </form>
+                </div>
+            </section>
+
+            <!-- TAB 3: DAFTAR TAGIHAN -->
+            <section id="tab-tagihan" class="hidden-tab fade-in max-w-6xl mx-auto space-y-6">
+                <div class="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-2">
+                    <header>
+                        <h2 class="text-3xl font-black tracking-tight">Daftar Tagihan 📄</h2>
+                        <p class="text-zinc-500 mt-2 font-medium">Pantau status pembayaran tersinkronisasi secara aktual.</p>
+                    </header>
+                    <div class="flex p-1.5 rounded-xl bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 shadow-sm overflow-x-auto w-full md:w-auto">
+                        <button onclick="window.setFilter('all')" id="filter-all" class="flex-1 md:flex-none px-5 py-2.5 text-xs font-bold rounded-lg transition-all bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-white">Semua</button>
+                        <button onclick="window.setFilter('unpaid')" id="filter-unpaid" class="flex-1 md:flex-none px-5 py-2.5 text-xs font-bold rounded-lg transition-all text-zinc-500 hover:text-zinc-900 dark:hover:text-white">Belum Lunas</button>
+                        <button onclick="window.setFilter('paid')" id="filter-paid" class="flex-1 md:flex-none px-5 py-2.5 text-xs font-bold rounded-lg transition-all text-zinc-500 hover:text-zinc-900 dark:hover:text-white">Sudah Lunas</button>
+                    </div>
+                </div>
+
+                <div class="relative w-full max-w-md flex items-center mb-6">
+                    <i class="ph ph-magnifying-glass text-xl text-zinc-400 absolute left-4"></i>
+                    <input type="text" id="searchInput" onkeyup="window.renderTransactions()" placeholder="Cari nama pihak terkait..." class="w-full pl-12 pr-4 py-4 rounded-xl bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 focus:outline-none focus:ring-2 focus:ring-indigo-500 font-bold shadow-sm dark:text-white" />
+                </div>
+
+                <div class="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-3xl overflow-hidden shadow-sm">
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left border-collapse whitespace-nowrap">
+                            <thead>
+                                <tr class="bg-zinc-50 dark:bg-zinc-950/50 border-b border-zinc-200 dark:border-zinc-800">
+                                    <th class="p-4 text-xs font-black text-zinc-500 uppercase tracking-widest">Informasi Pihak</th>
+                                    <th class="p-4 text-xs font-black text-zinc-500 uppercase tracking-widest">Tenggat Waktu</th>
+                                    <th class="p-4 text-xs font-black text-zinc-500 uppercase tracking-widest">Progress Bayar</th>
+                                    <th class="p-4 text-xs font-black text-zinc-500 uppercase tracking-widest">Sisa Saldo</th>
+                                    <th class="p-4 text-xs font-black text-zinc-500 uppercase tracking-widest text-right">Tindakan</th>
+                                </tr>
+                            </thead>
+                            <tbody id="txTableBody" class="divide-y divide-zinc-100 dark:divide-zinc-800">
+                                <!-- Generated via JS -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- TAB 4: DATA TEMAN -->
+            <section id="tab-teman" class="hidden-tab fade-in max-w-6xl mx-auto space-y-6">
+                <header class="mb-6">
+                    <h2 class="text-3xl font-black tracking-tight">Reputasi & Skor Rekan 🌟</h2>
+                    <p class="text-zinc-500 mt-2 font-medium">Analisis kedisiplinan dan kepercayaan berdasarkan riwayat transaksi di Cloud.</p>
+                </header>
+                <div class="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-3xl overflow-hidden shadow-sm">
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left border-collapse whitespace-nowrap">
+                            <thead>
+                                <tr class="bg-zinc-50 dark:bg-zinc-950/50 border-b border-zinc-200 dark:border-zinc-800">
+                                    <th class="p-4 text-xs font-black text-zinc-500 uppercase tracking-widest">Nama Rekan</th>
+                                    <th class="p-4 text-xs font-black text-zinc-500 uppercase tracking-widest">Reputasi</th>
+                                    <th class="p-4 text-xs font-black text-zinc-500 uppercase tracking-widest">Skor Kredit</th>
+                                    <th class="p-4 text-xs font-black text-zinc-500 uppercase tracking-widest">Total Transaksi Keluar</th>
+                                    <th class="p-4 text-xs font-black text-zinc-500 uppercase tracking-widest text-right">Tindakan Khusus</th>
+                                </tr>
+                            </thead>
+                            <tbody id="contactsTableBody" class="divide-y divide-zinc-100 dark:divide-zinc-800">
+                                <!-- Generated via JS -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- TAB 5: DAFTAR BLACKLIST -->
+            <section id="tab-blacklist" class="hidden-tab fade-in max-w-6xl mx-auto space-y-6">
+                <header class="mb-6 flex flex-col md:flex-row md:items-center gap-4">
+                    <div class="p-4 bg-rose-50 dark:bg-rose-500/10 rounded-2xl"><i class="ph-fill ph-warning text-3xl text-rose-500"></i></div>
+                    <div>
+                        <h2 class="text-3xl font-black tracking-tight text-rose-500">Daftar Peringatan 🚩</h2>
+                        <p class="text-zinc-500 mt-2 font-medium">Entitas dengan skor kredit buruk (di bawah 30) atau yang ditandai secara manual.</p>
+                    </div>
+                </header>
+                <div class="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-3xl overflow-hidden shadow-sm">
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left border-collapse whitespace-nowrap">
+                            <thead>
+                                <tr class="bg-zinc-50 dark:bg-zinc-950/50 border-b border-zinc-200 dark:border-zinc-800">
+                                    <th class="p-4 text-xs font-black text-zinc-500 uppercase tracking-widest w-1/3">Nama Pihak</th>
+                                    <th class="p-4 text-xs font-black text-zinc-500 uppercase tracking-widest">Skor Terakhir</th>
+                                    <th class="p-4 text-xs font-black text-zinc-500 uppercase tracking-widest text-right">Aksi Penanganan</th>
+                                </tr>
+                            </thead>
+                            <tbody id="blacklistTableBody" class="divide-y divide-zinc-100 dark:divide-zinc-800">
+                                <!-- Generated via JS -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- TAB 6: PANDUAN APLIKASI -->
+            <section id="tab-panduan" class="hidden-tab fade-in max-w-5xl mx-auto space-y-8">
+                <header class="mb-4">
+                    <div class="flex items-center gap-4 mb-2">
+                        <div class="p-3 bg-indigo-50 dark:bg-indigo-500/10 rounded-2xl"><i class="ph-fill ph-book-open text-3xl text-indigo-500"></i></div>
+                        <h2 class="text-3xl font-black tracking-tight">Panduan Lengkap 📖</h2>
+                    </div>
+                    <p class="text-zinc-500 mt-2 font-medium">Pelajari konsep dasar dan langkah teknis untuk memaksimalkan seluruh fitur sistem ini.</p>
+                </header>
+
+                <details class="group rounded-2xl bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 shadow-sm">
+                    <summary class="list-none cursor-pointer select-none px-5 py-4 flex items-center justify-between gap-4 hover:bg-zinc-50 dark:hover:bg-zinc-800/60 rounded-2xl transition-colors">
+                        <span class="text-xl font-black flex items-center gap-2 text-zinc-800 dark:text-zinc-100"><i class="ph-fill ph-lightbulb text-amber-500 text-2xl"></i> 1. Konsep Dasar Sistem</span>
+                        <i class="ph ph-caret-down text-xl text-zinc-400 transition-transform duration-200 group-open:rotate-180"></i>
+                    </summary>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 px-5 pb-5">
+                        <div class="p-5 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl">
+                            <h4 class="font-black flex items-center gap-2 mb-2"><i class="ph-fill ph-trend-up text-emerald-500"></i> Uang Keluar vs Uang Masuk</h4>
+                            <p class="text-sm text-zinc-500 font-medium leading-relaxed"><strong>Uang Keluar:</strong> Uang Anda yang dipinjam oleh orang lain. Ini menambah Saldo Bersih.<br/><strong>Uang Masuk:</strong> Anda meminjam uang dari orang lain. Ini mengurangi akumulasi Saldo Bersih Anda.</p>
+                        </div>
+                        <div class="p-5 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl">
+                            <h4 class="font-black flex items-center gap-2 mb-2"><i class="ph-fill ph-star text-amber-500"></i> Sistem Skor Kredit</h4>
+                            <p class="text-sm text-zinc-500 font-medium leading-relaxed">Setiap rekan akan memulai dengan <strong>Skor 100 (5 Bintang)</strong>. Melakukan pembayaran menambah +5 poin. Skor di bawah 30 otomatis memicu blokir/blacklist.</p>
+                        </div>
+                    </div>
+                </details>
+            </section>
+        </main>
+    </div>
+
+    <!-- FLOATING FAQ BUTTON -->
+    <button onclick="window.toggleModal('faqModal', true)" class="fixed bottom-8 right-8 z-40 w-14 h-14 bg-indigo-600 hover:bg-indigo-700 text-white rounded-full shadow-2xl flex items-center justify-center transform hover:scale-105 transition-all" title="Helpdesk">
+        <i class="ph ph-question text-2xl font-black"></i>
+    </button>
+
+    <!-- TOAST NOTIFICATION CONTAINER -->
+    <div id="toastContainer" class="fixed top-5 left-1/2 -translate-x-1/2 z-[300] flex flex-col gap-2 pointer-events-none"></div>
+
+    <!-- FAQ Modal -->
+    <div id="faqModal" class="hidden fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+        <div class="bg-white dark:bg-zinc-900 rounded-3xl p-6 md:p-8 w-full max-w-lg shadow-2xl modal-zoom max-h-[90vh] overflow-y-auto relative">
+            <div class="flex justify-between items-center mb-6 pb-4 border-b border-zinc-100 dark:border-zinc-800">
+                <h3 class="font-black text-xl flex items-center gap-2"><i class="ph-fill ph-info text-2xl text-indigo-500"></i> Bantuan & FAQ</h3>
+                <button onclick="window.toggleModal('faqModal', false)" class="p-2 bg-zinc-100 dark:bg-zinc-800 rounded-full hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors"><i class="ph ph-x"></i></button>
+            </div>
+            <div class="space-y-4">
+                <div class="p-5 bg-zinc-50 dark:bg-zinc-950 rounded-2xl border border-zinc-100 dark:border-zinc-800/50">
+                    <h4 class="font-black text-sm mb-2">Bagaimana sistem Skor Kredit bekerja?</h4>
+                    <p class="text-xs text-zinc-500 leading-relaxed font-medium">Setiap individu memulai dengan skor 100. Pelunasan tepat waktu menaikkan skor, penunggakan menurunkannya. Skor di bawah 30 memicu pembekuan transaksi otomatis (Blacklist).</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Confirm Modal -->
+    <div id="confirmModal" class="hidden fixed inset-0 z-[200] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+        <div class="bg-white dark:bg-zinc-900 rounded-3xl p-6 md:p-8 w-full max-w-sm text-center shadow-2xl modal-zoom">
+            <i class="ph-fill ph-warning text-5xl text-rose-500 mx-auto mb-4 block"></i>
+            <h3 class="font-black text-xl mb-2" id="confirmTitle">Konfirmasi</h3>
+            <p class="text-sm text-zinc-500 mb-8 font-medium" id="confirmMessage">Apakah Anda yakin?</p>
+            <div class="flex gap-3">
+                <button onclick="window.closeConfirm()" class="flex-1 py-3 bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 rounded-lg text-sm font-bold transition-colors">Batal</button>
+                <button id="confirmBtn" class="flex-1 py-3 bg-rose-600 text-white hover:bg-rose-700 rounded-lg text-sm font-bold transition-colors">Yakin Eksekusi</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Installment/Payment Modal -->
+    <div id="payModal" class="hidden fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+        <div class="bg-white dark:bg-zinc-900 rounded-3xl p-6 md:p-8 w-full max-w-sm shadow-2xl modal-zoom">
+            <div class="flex justify-between items-center mb-6">
+                <h3 class="font-black text-xl flex items-center gap-2" id="payModalTitle">Terima Dana</h3>
+                <button onclick="window.toggleModal('payModal', false)" class="p-2 bg-zinc-100 dark:bg-zinc-800 rounded-full hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors"><i class="ph ph-x"></i></button>
+            </div>
+            <form onsubmit="window.submitPayment(event)" class="space-y-6">
+                <div>
+                    <div class="flex justify-between text-xs font-black mb-3 uppercase tracking-wide">
+                        <span class="text-zinc-500">Sisa Kewajiban:</span>
+                        <span class="text-rose-500" id="payModalRemaining">Rp 0</span>
+                    </div>
+                    <input type="number" id="payAmountInput" placeholder="Masukkan nominal aktual" class="w-full p-4 rounded-xl bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 focus:ring-2 focus:ring-indigo-500 font-black text-lg text-center dark:text-white outline-none" required min="1" />
+                    
+                    <div class="flex gap-2 mt-4">
+                        <button type="button" onclick="window.setPayAmount(0.5)" class="flex-1 py-3 bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 rounded-lg text-xs font-bold transition-colors text-zinc-700 dark:text-zinc-300">Bayar Separuh</button>
+                        <button type="button" onclick="window.setPayAmount(1)" class="flex-1 py-3 bg-indigo-50 text-indigo-700 hover:bg-indigo-100 dark:bg-indigo-500/20 dark:text-indigo-300 rounded-lg text-xs font-bold transition-colors">Lunasi Total</button>
+                    </div>
+                </div>
+                <button type="submit" id="btnSubmitPay" class="w-full py-4 bg-indigo-600 text-white rounded-xl font-black flex justify-center items-center gap-2 hover:bg-indigo-700 transition-colors">
+                    <i class="ph-fill ph-check-circle text-xl"></i> Konfirmasi Transaksi
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- History & AI Detail Modal -->
+    <div id="detailModal" class="hidden fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+        <div class="bg-white dark:bg-zinc-900 rounded-3xl p-6 md:p-8 w-full max-w-md shadow-2xl modal-zoom max-h-[90vh] overflow-y-auto">
+            <div class="flex justify-between items-center mb-6 pb-4 border-b border-zinc-100 dark:border-zinc-800 sticky top-0 bg-white dark:bg-zinc-900 z-10">
+                <h3 class="font-black text-xl flex items-center gap-2"><i class="ph-fill ph-clock-counter-clockwise text-indigo-500 text-2xl"></i> Riwayat Transaksi</h3>
+                <button onclick="window.toggleModal('detailModal', false)" class="p-2 bg-zinc-100 dark:bg-zinc-800 rounded-full hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors"><i class="ph ph-x"></i></button>
+            </div>
+            <div id="aiSection" class="hidden mb-8 p-5 bg-indigo-50 dark:bg-indigo-900/20 rounded-2xl border border-indigo-100 dark:border-indigo-800/50">
+                <div class="flex gap-4">
+                    <div class="p-2 bg-indigo-500 text-white rounded-xl h-fit shadow-sm"><i class="ph-fill ph-robot text-xl"></i></div>
+                    <div class="w-full">
+                        <p class="text-xs font-black text-indigo-700 dark:text-indigo-400 mb-2 uppercase tracking-wide">Asisten Penagihan WA</p>
+                        <select id="aiToneSelect" class="w-full text-sm font-bold p-3 rounded-lg bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 outline-none focus:ring-2 focus:ring-indigo-500 mb-3 shadow-sm dark:text-white">
+                            <option value="ramah">😇 Gaya Bahasa: Ramah & Sopan</option>
+                            <option value="kasual">☕️ Gaya Bahasa: Kasual & Santai</option>
+                            <option value="tegas">⚠️ Gaya Bahasa: Tegas & Formal</option>
+                            <option value="islami">🕌 Gaya Bahasa: Pendekatan Religius</option>
+                        </select>
+                        <button onclick="window.generateWA()" class="w-full text-xs font-black bg-[#25D366] text-white py-3 rounded-lg flex items-center justify-center gap-2 hover:bg-[#20bd5a] transition-colors shadow-sm">
+                            <i class="ph-fill ph-whatsapp-logo text-lg"></i> Susun & Kirim Pesan
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <div id="historyTimeline" class="space-y-4 relative before:absolute before:inset-0 before:ml-5 before:w-0.5 before:bg-zinc-200 dark:before:bg-zinc-800"></div>
+        </div>
+    </div>
+
+    <!-- QR Modal -->
+    <div id="qrModal" class="hidden fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+        <div class="bg-white dark:bg-zinc-900 rounded-3xl p-6 md:p-8 w-full max-w-sm text-center shadow-2xl modal-zoom relative overflow-hidden">
+             <div class="flex justify-between items-center mb-6">
+                <button onclick="window.toggleModal('qrModal', false)" class="p-2 bg-zinc-100 dark:bg-zinc-800 rounded-full hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors"><i class="ph ph-arrow-left text-xl"></i></button>
+            </div>
+            <h3 class="font-black text-2xl mb-2 tracking-tight">Pindai Kode Transaksi</h3>
+            <p class="text-xs text-zinc-500 mb-8 font-medium">Tunjukkan kode ini kepada rekan Anda untuk referensi pencatatan.</p>
+            <div class="bg-white p-6 rounded-3xl inline-block mb-8 shadow-sm border border-zinc-200">
+               <i class="ph ph-qr-code text-[150px] text-zinc-900 leading-none"></i>
+            </div>
+            <button onclick="window.handleQrSimulate()" class="w-full py-4 bg-indigo-600 text-white rounded-xl font-black flex justify-center items-center gap-2 hover:bg-indigo-700 transition-colors">
+                <i class="ph-fill ph-scan text-xl"></i> Simulasi Dana Masuk
+            </button>
+        </div>
+    </div>
+
+    <!-- Profile Modal -->
+    <div id="profileModal" class="hidden fixed inset-0 z-[150] flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm">
+        <div class="modal-zoom max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-3xl bg-white p-7 shadow-2xl dark:bg-zinc-900">
+            <div class="mb-6 flex items-center justify-between">
+                <h3 class="text-xl font-black">👤 Halaman Profil</h3>
+                <button onclick="window.closeProfileModal()" class="rounded-lg p-2 text-zinc-400 hover:bg-zinc-100"><i class="ph ph-x text-xl"></i></button>
+            </div>
+            <div class="rounded-2xl bg-gradient-to-br from-indigo-600 to-violet-600 p-6 text-white">
+                <div class="flex items-center gap-4">
+                    <span id="profileAvatarLarge" class="flex h-20 w-20 items-center justify-center rounded-3xl bg-white/20 text-2xl font-black">P</span>
+                    <div>
+                        <p id="profileNameLarge" class="text-xl font-black">Profil</p>
+                        <p id="profileStatus" class="mt-1 text-sm font-bold text-indigo-100">Cloud Account</p>
+                    </div>
+                </div>
+            </div>
+            <div class="my-5 divide-y divide-zinc-100 rounded-2xl border border-zinc-200 px-4 dark:divide-zinc-800 dark:border-zinc-800">
+                <div class="py-3 text-sm"><span class="text-zinc-500">Email</span><p id="profileEmail" class="font-bold"></p></div>
+                <div class="py-3 text-sm"><span class="text-zinc-500">Nomor WhatsApp</span><p id="profileWhatsapp" class="font-bold"></p></div>
+            </div>
+            <div class="grid grid-cols-2 gap-3">
+                <button onclick="window.openEditProfile()" class="rounded-xl bg-indigo-600 py-3 font-bold text-white">Edit Profil</button>
+                <button onclick="window.logoutProfile()" class="rounded-xl bg-rose-50 py-3 font-bold text-rose-600">Logout</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Profile Modal -->
+    <div id="editProfileModal" class="hidden fixed inset-0 z-[160] flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm">
+        <form onsubmit="window.saveProfile(event)" class="modal-zoom w-full max-w-md rounded-3xl bg-white p-7 shadow-2xl dark:bg-zinc-900">
+            <div class="mb-5 flex items-center justify-between"><h3 class="text-xl font-black">Edit Profil</h3><button type="button" onclick="window.closeEditProfile()" class="p-2 text-zinc-400"><i class="ph ph-x text-xl"></i></button></div>
+            <label class="mb-2 block text-sm font-bold">Nama Lengkap</label>
+            <input id="editName" required maxlength="32" class="mb-4 w-full rounded-xl border p-3 font-bold dark:border-zinc-800 dark:bg-zinc-950 dark:text-white" />
+            <label class="mb-2 block text-sm font-bold">Nomor WhatsApp</label>
+            <input id="editWhatsapp" type="tel" class="mb-4 w-full rounded-xl border p-3 font-bold dark:border-zinc-800 dark:bg-zinc-950 dark:text-white" />
+            <button id="btnSaveProfile" class="mt-4 w-full rounded-xl bg-indigo-600 py-3.5 font-black text-white disabled:opacity-50">Simpan ke Cloud</button>
+        </form>
+    </div>
+
+    <!-- Settings Modal -->
+    <div id="settingsModal" class="hidden fixed inset-0 z-[180] flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm">
+        <div class="modal-zoom max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-3xl bg-white p-7 shadow-2xl dark:bg-zinc-900">
+            <div class="mb-5 flex items-center justify-between"><h3 class="text-xl font-black">Pengaturan Cloud</h3><button onclick="window.closeSettingsModal()" class="p-2 text-zinc-400"><i class="ph ph-x text-xl"></i></button></div>
+            <div class="space-y-5">
+                <section>
+                    <h4 class="mb-2 font-black">Data Sinkronisasi</h4>
+                    <p class="text-xs text-zinc-500 mb-3">Seluruh data Anda otomatis disinkronisasi dan dicadangkan di Firebase Cloud. Anda dapat menghapus riwayat jika diperlukan.</p>
+                    <button type="button" onclick="window.clearAllData()" class="mt-3 w-full rounded-xl bg-rose-50 py-3 text-sm font-bold text-rose-600">Hapus Semua Data Transaksi (Permanen)</button>
+                </section>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        // Import dependensi Firebase v11.6.1
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInWithCustomToken, signInAnonymously, signInWithEmailAndPassword, createUserWithEmailAndPassword, sendPasswordResetEmail, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, setDoc, getDoc, updateDoc, deleteDoc, onSnapshot, collection, query, getDocs } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // Konfigurasi Cloud Environment
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'pihutang-cloud-default';
+        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {};
+        
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        // State Global Aplikasi
+        const state = {
+            userId: null,
+            profile: null,
+            transactions: [],
+            contacts: {},
+            activeTab: 'dashboard',
+            filterTagihan: 'all',
+            isDarkMode: document.documentElement.classList.contains('dark'),
+            activeTx: null,
+            confirmAction: null,
+            chartInstance: null,
+            unsubscribers: []
+        };
+
+        // --- SISTEM NOTIFIKASI TOAST (Pengganti Alert) ---
+        window.showToast = (message, type = 'success') => {
+            const container = document.getElementById('toastContainer');
+            const toast = document.createElement('div');
+            const colors = type === 'error' ? 'bg-rose-600 text-white' : (type === 'warn' ? 'bg-amber-500 text-white' : 'bg-zinc-900 dark:bg-white text-white dark:text-black');
+            const icon = type === 'error' ? 'ph-warning-circle' : (type === 'warn' ? 'ph-warning' : 'ph-check-circle');
+            
+            toast.className = `px-5 py-3 rounded-xl font-bold text-sm shadow-xl flex items-center gap-3 toast-slide-up pointer-events-auto ${colors}`;
+            toast.innerHTML = `<i class="ph-fill ${icon} text-lg"></i> <span>${message}</span>`;
+            
+            container.appendChild(toast);
+            setTimeout(() => {
+                toast.style.opacity = '0';
+                toast.style.transform = 'translate(-50%, -20px)';
+                toast.style.transition = 'all 0.3s ease';
+                setTimeout(() => toast.remove(), 300);
+            }, 3500);
+        };
+
+        // --- FIREBASE LISTENERS & DATA SYNC ---
+        const attachListeners = () => {
+            if (!state.userId) return;
+            
+            // Bersihkan listener lama
+            state.unsubscribers.forEach(unsub => unsub());
+            state.unsubscribers = [];
+
+            // Listen Profil
+            const unsubProfile = onSnapshot(doc(db, 'artifacts', appId, 'users', state.userId, 'metadata', 'profile'), (snapshot) => {
+                if (snapshot.exists()) {
+                    state.profile = snapshot.data();
+                } else {
+                    state.profile = { email: auth.currentUser?.email || 'Anonim' };
+                }
+                applyProfileUI();
+            }, (error) => console.error("Error listening to profile:", error));
+
+            // Listen Transaksi
+            const txQuery = collection(db, 'artifacts', appId, 'users', state.userId, 'transactions');
+            const unsubTx = onSnapshot(txQuery, (snapshot) => {
+                state.transactions = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                if(state.activeTab === 'dashboard') window.renderDashboard();
+                if(state.activeTab === 'tagihan') window.renderTransactions();
+            }, (error) => console.error("Error listening to transactions:", error));
+
+            // Listen Kontak/Relasi
+            const contactQuery = collection(db, 'artifacts', appId, 'users', state.userId, 'contacts');
+            const unsubContacts = onSnapshot(contactQuery, (snapshot) => {
+                const data = {};
+                snapshot.docs.forEach(doc => { data[doc.id] = doc.data(); });
+                state.contacts = data;
+                if(state.activeTab === 'teman') window.renderContacts();
+                if(state.activeTab === 'blacklist') window.renderBlacklist();
+            }, (error) => console.error("Error listening to contacts:", error));
+
+            state.unsubscribers.push(unsubProfile, unsubTx, unsubContacts);
+        };
+
+        // --- AUTHENTICATION FLOW (LOGIN/REGISTER/INIT) ---
+        let captchaAnswer = 0;
+
+        window.generateCaptcha = () => {
+            const num1 = Math.floor(Math.random() * 10) + 1;
+            const num2 = Math.floor(Math.random() * 10) + 1;
+            captchaAnswer = num1 + num2;
+            document.getElementById('captchaQuestion').textContent = `${num1} + ${num2}`;
+            document.getElementById('regCaptcha').value = '';
+        };
+
+        window.switchAuth = (view) => {
+            ['loginForm', 'registerForm', 'forgotForm'].forEach(id => document.getElementById(id).classList.add('hidden'));
+            if (view === 'register') {
+                document.getElementById('registerForm').classList.remove('hidden');
+                window.generateCaptcha();
+            } else if (view === 'forgot') {
+                document.getElementById('forgotForm').classList.remove('hidden');
+            } else {
+                document.getElementById('loginForm').classList.remove('hidden');
+            }
+        };
+
+        window.handleLogin = async (event) => {
+            event.preventDefault();
+            const btn = document.getElementById('btnLogin');
+            const errorEl = document.getElementById('loginError');
+            const email = document.getElementById('loginEmail').value.trim();
+            const pass = document.getElementById('loginPassword').value;
+            
+            btn.disabled = true; btn.innerHTML = '<i class="ph ph-spinner-gap animate-spin text-xl"></i> Memproses...';
+            errorEl.classList.add('hidden');
+
+            try {
+                const userCredential = await signInWithEmailAndPassword(auth, email, pass);
+                state.userId = userCredential.user.uid;
+                window.enterApp();
+            } catch (error) {
+                errorEl.textContent = 'Login gagal: Email atau password salah.';
+                errorEl.classList.remove('hidden');
+                console.error(error);
+            } finally {
+                btn.disabled = false; btn.innerHTML = '<i class="ph-fill ph-arrow-right text-xl"></i> Masuk Sekarang';
+            }
+        };
+
+        window.handleRegister = async (event) => {
+            event.preventDefault();
+            const btn = document.getElementById('btnRegister');
+            const errorEl = document.getElementById('regError');
+            
+            const name = document.getElementById('regName').value.trim();
+            const email = document.getElementById('regEmail').value.trim();
+            const pass = document.getElementById('regPassword').value;
+            const confirm = document.getElementById('regConfirm').value;
+            const captcha = parseInt(document.getElementById('regCaptcha').value);
+            
+            errorEl.classList.add('hidden');
+
+            if (pass !== confirm) {
+                errorEl.textContent = 'Konfirmasi password tidak cocok.';
+                errorEl.classList.remove('hidden'); return;
+            }
+            if (captcha !== captchaAnswer) {
+                errorEl.textContent = 'Jawaban keamanan salah.';
+                errorEl.classList.remove('hidden');
+                window.generateCaptcha(); return;
+            }
+            
+            btn.disabled = true; btn.innerHTML = '<i class="ph ph-spinner-gap animate-spin text-xl"></i> Mendaftarkan...';
+
+            try {
+                const userCredential = await createUserWithEmailAndPassword(auth, email, pass);
+                state.userId = userCredential.user.uid;
+                
+                // Simpan profil awal
+                await setDoc(doc(db, 'artifacts', appId, 'users', state.userId, 'metadata', 'profile'), {
+                    name: name,
+                    email: email,
+                    whatsapp: '',
+                    joinedAt: new Date().toISOString()
+                });
+                
+                window.showToast("Akun berhasil dibuat dan diamankan di Cloud.");
+                window.enterApp();
+            } catch (error) {
+                errorEl.textContent = error.code === 'auth/email-already-in-use' ? 'Email sudah terdaftar.' : 'Gagal mendaftar. Coba lagi.';
+                errorEl.classList.remove('hidden');
+                console.error(error);
+            } finally {
+                btn.disabled = false; btn.innerHTML = '<i class="ph-fill ph-user-plus text-xl"></i> Daftar Sekarang';
+            }
+        };
+
+        window.handleForgot = async (event) => {
+            event.preventDefault();
+            const btn = document.getElementById('btnForgot');
+            const errorEl = document.getElementById('forgotError');
+            const email = document.getElementById('forgotEmail').value.trim();
+            
+            btn.disabled = true; btn.innerHTML = '<i class="ph ph-spinner-gap animate-spin text-xl"></i> Mengirim...';
+            errorEl.classList.add('hidden');
+
+            try {
+                await sendPasswordResetEmail(auth, email);
+                window.showToast("Instruksi reset password telah dikirim ke email Anda.");
+                window.switchAuth('login');
+            } catch (error) {
+                errorEl.textContent = 'Gagal mengirim email reset. Pastikan email valid.';
+                errorEl.classList.remove('hidden');
+            } finally {
+                btn.disabled = false; btn.innerHTML = '<i class="ph-fill ph-paper-plane-tilt text-xl"></i> Kirim Permintaan Reset';
+            }
+        };
+
+        // Inisialisasi Utama saat Halaman Dimuat
+        const initApp = async () => {
+            // Sembunyikan splash screen setelah delay visual
+            setTimeout(() => {
+                document.getElementById('splashScreen').classList.add('hidden');
+                document.getElementById('authScreen').classList.remove('hidden');
+            }, 1400);
+
+            // Cek token lingkungan kolaborasi (Canvas Custom Token fallback)
+            if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                try {
+                    const cred = await signInWithCustomToken(auth, __initial_auth_token);
+                    state.userId = cred.user.uid;
+                    document.getElementById('authScreen').classList.add('hidden');
+                    window.enterApp();
+                } catch(e) {
+                    console.error("Token kustom gagal", e);
+                }
+            }
+        };
+
+        window.enterApp = () => {
+            if (!state.userId) return; // Guard clause
+            
+            document.getElementById('authScreen').classList.add('hidden');
+            document.getElementById('app').classList.remove('hidden');
+            document.getElementById('app').classList.add('flex', 'fade-in');
+            
+            attachListeners();
+            window.renderNav();
+            window.setActiveTab('dashboard');
+        };
+
+        window.logoutProfile = async () => {
+            try {
+                await signOut(auth);
+                state.userId = null;
+                state.unsubscribers.forEach(u => u());
+                state.unsubscribers = [];
+                window.closeProfileModal();
+                document.getElementById('app').classList.add('hidden');
+                document.getElementById('app').classList.remove('flex');
+                document.getElementById('loginPassword').value = '';
+                document.getElementById('authScreen').classList.remove('hidden');
+                window.switchAuth('login');
+                window.showToast("Anda telah keluar dari sesi Cloud.");
+            } catch (e) {
+                window.showToast("Gagal logout.", "error");
+            }
+        };
+
+        // --- UI & LOGIC HELPERS ---
+        const avatarColors = ['bg-indigo-600', 'bg-violet-600', 'bg-emerald-600', 'bg-rose-600', 'bg-amber-500', 'bg-sky-600'];
+        
+        const applyProfileUI = () => {
+            const p = state.profile || {};
+            const name = p.name || p.email || 'Profil Anonim';
+            const initial = name.trim().charAt(0).toUpperCase() || 'P';
+            const color = avatarColors[(name.charCodeAt(0) || 0) % avatarColors.length];
+            
+            ['profileAvatar', 'profileAvatarLarge'].forEach((id) => { 
+                const el = document.getElementById(id); 
+                if (el) { el.textContent = initial; el.className = el.className.replace(/bg-(indigo|violet|emerald|rose|amber|sky)-(500|600)/g, '') + ' ' + color; } 
+            });
+            
+            const values = { 
+                profileName: name, 
+                profileNameLarge: name, 
+                profileEmail: p.email || 'Belum diatur', 
+                profileWhatsapp: p.whatsapp || 'Belum diatur'
+            };
+            Object.entries(values).forEach(([id, value]) => { const el = document.getElementById(id); if (el) el.textContent = value; });
+        };
+        
+        window.openProfileModal = () => document.getElementById('profileModal').classList.remove('hidden');
+        window.closeProfileModal = () => document.getElementById('profileModal').classList.add('hidden');
+        window.openSettingsModal = () => document.getElementById('settingsModal').classList.remove('hidden');
+        window.closeSettingsModal = () => document.getElementById('settingsModal').classList.add('hidden');
+        
+        window.openEditProfile = () => { 
+            const p = state.profile || {}; 
+            document.getElementById('editName').value = p.name || ''; 
+            document.getElementById('editWhatsapp').value = p.whatsapp || ''; 
+            document.getElementById('editProfileModal').classList.remove('hidden'); 
+        };
+        window.closeEditProfile = () => document.getElementById('editProfileModal').classList.add('hidden');
+        
+        window.saveProfile = async (event) => { 
+            event.preventDefault(); 
+            if(!state.userId) return;
+            const btn = document.getElementById('btnSaveProfile');
+            btn.disabled = true;
+            try {
+                await setDoc(doc(db, 'artifacts', appId, 'users', state.userId, 'metadata', 'profile'), {
+                    ...state.profile,
+                    name: document.getElementById('editName').value.trim(),
+                    whatsapp: document.getElementById('editWhatsapp').value.trim()
+                }, { merge: true });
+                window.showToast('Profil Cloud berhasil diperbarui.');
+                window.closeEditProfile(); 
+            } catch(e) {
+                window.showToast('Gagal menyimpan profil.', 'error');
+            } finally {
+                btn.disabled = false;
+            }
+        };
+
+        window.clearAllData = () => { 
+            document.getElementById('confirmTitle').textContent = 'Konfirmasi Kritis';
+            document.getElementById('confirmMessage').textContent = 'Seluruh data transaksi dan relasi akan dihapus permanen dari Cloud. Apakah Anda yakin?';
+            state.confirmAction = async () => { 
+                if(!state.userId) return;
+                try {
+                    // Dalam implementasi nyata, menghapus banyak dokumen di client perlu batching atau cloud functions.
+                    // Karena batasan simulasi sederhana, kita fetch dan hapus satu persatu.
+                    const txs = await getDocs(collection(db, 'artifacts', appId, 'users', state.userId, 'transactions'));
+                    txs.forEach(async (d) => await deleteDoc(d.ref));
+                    
+                    const cons = await getDocs(collection(db, 'artifacts', appId, 'users', state.userId, 'contacts'));
+                    cons.forEach(async (d) => await deleteDoc(d.ref));
+                    
+                    window.showToast('Seluruh data Cloud telah dikosongkan.');
+                } catch(e) {
+                    window.showToast('Terjadi kesalahan saat menghapus data.', 'error');
+                }
+            };
+            window.toggleModal('confirmModal', true);
+        };
+
+        // --- UTILITIES UI LAINNYA ---
+        document.getElementById('formDueDate').min = new Date().toISOString().split('T')[0];
+        const formatRp = (num) => 'Rp ' + (Number(num) || 0).toLocaleString('id-ID');
+        const getStars = (score) => {
+            if (score >= 90) return '⭐⭐⭐⭐⭐';
+            if (score >= 70) return '⭐⭐⭐⭐';
+            if (score >= 50) return '⭐⭐⭐';
+            if (score >= 30) return '⭐⭐';
+            return '⭐';
+        };
+
+        const navItems = [
+            { id: 'dashboard', icon: 'ph-squares-four', label: 'Ringkasan Utama' },
+            { id: 'catat', icon: 'ph-plus-circle', label: 'Pencatatan Transaksi' },
+            { id: 'tagihan', icon: 'ph-file-text', label: 'Daftar Tagihan' },
+            { type: 'divider', label: 'Data & Relasi Cloud' },
+            { id: 'teman', icon: 'ph-users', label: 'Reputasi Rekan' },
+            { id: 'blacklist', icon: 'ph-warning', label: 'Daftar Peringatan', isDanger: true },
+            { type: 'divider', label: 'Bantuan & Info' },
+            { id: 'panduan', icon: 'ph-book-open', label: 'Panduan Aplikasi' },
+        ];
+
+        window.renderNav = function() {
+            const navContainer = document.getElementById('navMenu');
+            let html = '';
+            navItems.forEach(item => {
+                if (item.type === 'divider') {
+                    html += `<div class="pt-6 pb-2"><p class="px-4 text-[10px] font-black uppercase tracking-widest text-zinc-400">${item.label}</p></div>`;
+                    return;
+                }
+                const isActive = state.activeTab === item.id;
+                let classes = `w-full flex items-center gap-3 px-4 py-3.5 rounded-xl font-bold text-sm transition-all `;
+                if (item.isDanger) classes += isActive ? 'bg-rose-500 text-white shadow-md' : 'text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-500/10';
+                else classes += isActive ? 'bg-zinc-900 text-white dark:bg-white dark:text-black shadow-md' : 'text-zinc-500 hover:bg-zinc-100 dark:hover:bg-zinc-800';
+                html += `<button onclick="window.setActiveTab('${item.id}')" class="${classes}"><i class="${item.icon} text-xl"></i> ${item.label}</button>`;
+            });
+            navContainer.innerHTML = html;
+        };
+
+        window.setActiveTab = function(tabId) {
+            state.activeTab = tabId;
+            window.renderNav();
+            window.toggleSidebar(false);
+            ['dashboard', 'catat', 'tagihan', 'teman', 'blacklist', 'panduan'].forEach(id => {
+                const el = document.getElementById(`tab-${id}`);
+                if(el) el.classList.add('hidden-tab');
+            });
+            const activeEl = document.getElementById(`tab-${tabId}`);
+            if(activeEl) activeEl.classList.remove('hidden-tab');
+            if (tabId === 'dashboard') window.renderDashboard();
+            if (tabId === 'tagihan') window.renderTransactions();
+            if (tabId === 'teman') window.renderContacts();
+            if (tabId === 'blacklist') window.renderBlacklist();
+        };
+
+        window.toggleSidebar = function(forceShow) {
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.getElementById('mobileOverlay');
+            if (forceShow === true) {
+                sidebar.classList.remove('-translate-x-full');
+                overlay.classList.remove('hidden');
+                setTimeout(() => overlay.classList.remove('opacity-0'), 10);
+            } else {
+                sidebar.classList.add('-translate-x-full');
+                overlay.classList.add('opacity-0');
+                setTimeout(() => overlay.classList.add('hidden'), 300);
+            }
+        };
+
+        window.toggleDarkMode = function() {
+            const html = document.documentElement;
+            const isDark = html.classList.toggle('dark');
+            state.isDarkMode = isDark;
+            const btnIcon = document.getElementById('darkModeIcon');
+            const btnText = document.getElementById('darkModeText');
+            if (isDark) { btnIcon.className = 'ph ph-sun text-xl text-amber-500'; btnText.textContent = 'Mode Terang'; } 
+            else { btnIcon.className = 'ph ph-moon text-xl text-zinc-600'; btnText.textContent = 'Mode Gelap'; }
+            if (state.activeTab === 'dashboard') window.renderDashboard();
+        };
+
+        window.renderDashboard = function() {
+            let totalDebt = 0; let totalLent = 0;
+            state.transactions.forEach(tx => {
+                if (!tx.isPaid) {
+                    const remaining = tx.amount - tx.paidAmount;
+                    if (tx.type === 'owe') totalDebt += remaining; 
+                    else totalLent += remaining;
+                }
+            });
+            document.getElementById('dashNetWorth').textContent = formatRp(totalLent - totalDebt);
+            document.getElementById('dashLent').textContent = formatRp(totalLent);
+            document.getElementById('dashDebt').textContent = formatRp(totalDebt);
+
+            const ctx = document.getElementById('balanceChart').getContext('2d');
+            if (state.chartInstance) state.chartInstance.destroy();
+            state.chartInstance = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Dana Keluar (Piutang)', 'Dana Masuk (Hutang)'],
+                    datasets: [{
+                        data: [totalLent || 0.1, totalDebt || 0.1],
+                        backgroundColor: ['#10b981', '#f43f5e'],
+                        borderWidth: 0, hoverOffset: 4
+                    }]
+                },
+                options: {
+                    responsive: true, maintainAspectRatio: false, cutout: '70%',
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: { callbacks: { label: function(context) { if(context.raw === 0.1) return 'Rp 0'; return formatRp(context.raw); } } }
+                    }
+                }
+            });
+        };
+
+        window.setFilter = function(filter) {
+            state.filterTagihan = filter;
+            ['all', 'unpaid', 'paid'].forEach(f => {
+                const btn = document.getElementById(`filter-${f}`);
+                if (f === filter) btn.className = 'flex-1 md:flex-none px-5 py-2.5 text-xs font-bold rounded-lg transition-all bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-white';
+                else btn.className = 'flex-1 md:flex-none px-5 py-2.5 text-xs font-bold rounded-lg transition-all text-zinc-500 hover:text-zinc-900 dark:hover:text-white';
+            });
+            window.renderTransactions();
+        };
+
+        window.renderTransactions = function() {
+            const tbody = document.getElementById('txTableBody');
+            const searchVal = document.getElementById('searchInput').value.toLowerCase();
+            const filtered = state.transactions.filter(t => {
+                const matchFilter = (state.filterTagihan === 'unpaid' && !t.isPaid) || (state.filterTagihan === 'paid' && t.isPaid) || state.filterTagihan === 'all';
+                const matchSearch = t.name.toLowerCase().includes(searchVal);
+                return matchFilter && matchSearch;
+            }).sort((a, b) => a.isPaid === b.isPaid ? new Date(a.dueDate) - new Date(b.dueDate) : (a.isPaid ? 1 : -1));
+
+            if (filtered.length === 0) {
+                tbody.innerHTML = `<tr><td colSpan="5" class="text-center py-12 text-zinc-400 font-bold">Tidak ada catatan di Cloud.</td></tr>`;
+                return;
+            }
+
+            let html = '';
+            filtered.forEach(t => {
+                const progress = Math.min(100, Math.round((t.paidAmount / t.amount) * 100));
+                const remaining = t.amount - t.paidAmount;
+                const isPiutang = t.type === 'lent';
+                
+                let badge = '';
+                if (t.isPaid) badge = `<span class="text-[10px] font-black px-2.5 py-1 rounded-md bg-zinc-100 dark:bg-zinc-800 text-zinc-500">LUNAS</span>`;
+                else {
+                    const diffDays = Math.ceil((new Date(t.dueDate).setHours(0,0,0,0) - new Date().setHours(0,0,0,0)) / (1000 * 60 * 60 * 24));
+                    if (diffDays < 0) badge = `<span class="text-[10px] font-black px-2.5 py-1 rounded-md bg-rose-100 text-rose-600 dark:bg-rose-500/20 dark:text-rose-400 animate-pulse">TERLAMBAT</span>`;
+                    else if (diffDays === 0) badge = `<span class="text-[10px] font-black px-2.5 py-1 rounded-md bg-amber-100 text-amber-600 dark:bg-amber-500/20">HARI INI</span>`;
+                    else if (diffDays <= 7) badge = `<span class="text-[10px] font-black px-2.5 py-1 rounded-md bg-indigo-100 text-indigo-600 dark:bg-indigo-500/20">H-${diffDays}</span>`;
+                    else badge = `<span class="text-[10px] font-black px-2.5 py-1 rounded-md bg-emerald-100 text-emerald-600 dark:bg-emerald-500/20">AMAN</span>`;
+                }
+
+                html += `
+                    <tr class="transition-colors hover:bg-zinc-50 dark:hover:bg-zinc-800/50 ${t.isPaid ? 'opacity-60' : ''}">
+                        <td class="p-4">
+                            <p class="font-black text-lg ${t.isPaid ? 'line-through' : ''}">${t.name}</p>
+                            <p class="text-[10px] font-bold ${isPiutang ? 'text-emerald-500' : 'text-rose-500'} uppercase mt-0.5 tracking-wider">
+                                ${isPiutang ? 'Uang Anda Dipinjam' : 'Anda Menerima Pinjaman'}
+                            </p>
+                        </td>
+                        <td class="p-4">
+                            <p class="text-sm font-bold text-zinc-500 mb-1.5">${new Date(t.dueDate).toLocaleDateString('id-ID')}</p>
+                            ${badge}
+                        </td>
+                        <td class="p-4 w-48">
+                            <div class="w-full bg-zinc-100 dark:bg-zinc-800 rounded-full h-2 mb-2 overflow-hidden">
+                                <div class="bg-indigo-500 h-2 rounded-full" style="width: ${progress}%"></div>
+                            </div>
+                            <p class="text-[10px] font-bold text-zinc-500 uppercase">Terkumpul: ${formatRp(t.paidAmount)}</p>
+                        </td>
+                        <td class="p-4">
+                            <p class="font-black text-lg">${formatRp(remaining)}</p>
+                            <p class="text-[10px] text-zinc-400 font-bold">Total: ${formatRp(t.amount)}</p>
+                        </td>
+                        <td class="p-4">
+                            <div class="flex items-center justify-end gap-2">
+                                ${!t.isPaid ? `
+                                    <button onclick="window.openPayModal('${t.id}')" class="p-2.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-600 dark:bg-emerald-500/10 dark:hover:bg-emerald-500/20 rounded-lg transition-colors" title="${isPiutang ? 'Terima Dana' : 'Bayar Cicilan'}">
+                                        <i class="ph-fill ph-coins text-lg"></i>
+                                    </button>
+                                    ${isPiutang ? `
+                                        <button onclick="window.openQrModal('${t.id}')" class="p-2.5 bg-indigo-50 hover:bg-indigo-100 text-indigo-600 dark:bg-indigo-500/10 dark:hover:bg-indigo-500/20 rounded-lg transition-colors" title="Tampilkan Kode QR">
+                                            <i class="ph-fill ph-qr-code text-lg"></i>
+                                        </button>
+                                    ` : ''}
+                                ` : ''}
+                                <button onclick="window.openDetailModal('${t.id}')" class="p-2.5 bg-zinc-100 hover:bg-zinc-200 text-zinc-600 dark:bg-zinc-800 dark:hover:bg-zinc-700 dark:text-zinc-400 rounded-lg transition-colors" title="Riwayat Detail">
+                                    <i class="ph-fill ph-clock-counter-clockwise text-lg"></i>
+                                </button>
+                                <button onclick="window.confirmDelete('${t.id}')" class="p-2.5 bg-rose-50 hover:bg-rose-100 text-rose-600 dark:bg-rose-500/10 dark:hover:bg-rose-500/20 rounded-lg transition-colors" title="Hapus Permanen">
+                                    <i class="ph-fill ph-trash text-lg"></i>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+            });
+            tbody.innerHTML = html;
+        };
+
+        window.renderContacts = function() {
+            const tbody = document.getElementById('contactsTableBody');
+            const entries = Object.entries(state.contacts);
+            if (entries.length === 0) {
+                tbody.innerHTML = `<tr><td colSpan="5" class="text-center py-12 text-zinc-400 font-bold">Sistem belum mendeteksi data relasi.</td></tr>`;
+                return;
+            }
+            let html = '';
+            entries.forEach(([name, c]) => {
+                html += `
+                    <tr class="transition-colors hover:bg-zinc-50 dark:hover:bg-zinc-800/50">
+                        <td class="p-4 font-black text-lg capitalize flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-full bg-indigo-100 dark:bg-indigo-500/20 text-indigo-600 dark:text-indigo-400 flex items-center justify-center font-black">${name.charAt(0)}</div>
+                            ${name}
+                        </td>
+                        <td class="p-4 text-sm tracking-widest">${getStars(c.score)}</td>
+                        <td class="p-4">
+                            <span class="font-black text-xl ${c.isBlacklisted ? 'text-rose-500' : (c.score > 70 ? 'text-emerald-500' : 'text-amber-500')}">${c.score}</span> 
+                            <span class="text-xs text-zinc-400 font-bold ml-1">/ 100</span>
+                        </td>
+                        <td class="p-4 text-sm font-bold">${formatRp(c.totalLent)}</td>
+                        <td class="p-4 text-right">
+                            ${!c.isBlacklisted ? `
+                                <button onclick="window.confirmManualBlacklist('${name}')" class="px-3 py-2 bg-rose-50 hover:bg-rose-100 text-rose-600 dark:bg-rose-500/10 dark:hover:bg-rose-500/20 rounded-lg text-xs font-bold transition-colors inline-flex items-center gap-1">
+                                    <i class="ph-fill ph-flag"></i> Tandai Blacklist
+                                </button>
+                            ` : `
+                                <span class="text-[10px] font-black px-2.5 py-1.5 rounded-md bg-rose-100 text-rose-600 dark:bg-rose-500/20 dark:text-rose-400">
+                                    <i class="ph-fill ph-lock-key text-xs mr-1"></i> DIBEKUKAN
+                                </span>
+                            `}
+                        </td>
+                    </tr>
+                `;
+            });
+            tbody.innerHTML = html;
+        };
+
+        window.renderBlacklist = function() {
+            const tbody = document.getElementById('blacklistTableBody');
+            const blacklisted = Object.entries(state.contacts).filter(([name, c]) => c.isBlacklisted);
+            if (blacklisted.length === 0) {
+                tbody.innerHTML = `<tr><td colSpan="3" class="text-center py-16"><i class="ph-fill ph-shield-check text-5xl text-emerald-500 mx-auto mb-4 opacity-50 block"></i><p class="text-emerald-500 font-black">Status Aman. Tidak ada entitas di daftar peringatan.</p></td></tr>`;
+                return;
+            }
+            let html = '';
+            blacklisted.forEach(([name, c]) => {
+                html += `
+                    <tr class="bg-rose-50/50 dark:bg-rose-900/10 hover:bg-rose-50 dark:hover:bg-rose-900/20">
+                        <td class="p-4 font-black text-lg capitalize">${name}</td>
+                        <td class="p-4 font-black text-xl text-rose-500">${c.score}</td>
+                        <td class="p-4 text-right">
+                            <button onclick="window.confirmForgive('${name}')" class="px-4 py-2 bg-emerald-500 hover:bg-emerald-600 text-white rounded-lg text-xs font-black transition-all shadow-md inline-flex items-center gap-2">
+                                <i class="ph-fill ph-handshake text-lg"></i> Maafkan & Restorasi
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            });
+            tbody.innerHTML = html;
+        };
+
+        window.toggleModal = function(modalId, show) {
+            const el = document.getElementById(modalId);
+            if(show) {
+                el.classList.remove('hidden');
+            } else {
+                el.classList.add('hidden');
+                if(modalId === 'payModal') { state.activeTx = null; document.getElementById('payAmountInput').value = ''; }
+                if(modalId === 'confirmModal') state.confirmAction = null;
+                if(modalId === 'detailModal') state.activeTx = null;
+                if(modalId === 'qrModal') state.activeTx = null;
+            }
+        };
+
+        window.handleAddTransaction = async function(e) {
+            e.preventDefault();
+            if (!state.userId) return;
+
+            const btn = document.getElementById('btnSubmitTx');
+            btn.disabled = true; btn.innerHTML = '<i class="ph ph-spinner-gap animate-spin text-xl"></i> Memproses...';
+
+            const nameInput = document.getElementById('formName').value;
+            const amountInput = document.getElementById('formAmount').value;
+            const dueDateInput = document.getElementById('formDueDate').value;
+            const typeInput = document.querySelector('input[name="txType"]:checked').value;
+            
+            // Format contact key sederhana untuk ID Dokumen
+            const name = nameInput.trim().toUpperCase().replace(/[^A-Z0-9]/g, '_');
+            const originalName = nameInput.trim();
+            const amount = parseFloat(amountInput);
+
+            if (amount <= 0 || !name || !dueDateInput) {
+                btn.disabled = false; btn.innerHTML = '<i class="ph ph-floppy-disk text-xl"></i> Simpan ke Cloud';
+                return;
+            }
+
+            const currentContact = state.contacts[name] || { score: 100, isBlacklisted: false, totalLent: 0, totalPaid: 0 };
+            
+            if (currentContact.isBlacklisted && typeInput === 'lent') {
+                window.closeConfirm();
+                document.getElementById('confirmTitle').textContent = 'Peringatan Sistem';
+                document.getElementById('confirmMessage').textContent = `Entitas ${originalName} berada di Daftar Peringatan (Blacklist). Restorasi dulu sebelum pencatatan dana baru.`;
+                document.getElementById('confirmBtn').classList.add('hidden');
+                window.toggleModal('confirmModal', true);
+                
+                btn.disabled = false; btn.innerHTML = '<i class="ph ph-floppy-disk text-xl"></i> Simpan ke Cloud';
+                const oldClose = window.closeConfirm;
+                window.closeConfirm = () => { oldClose(); setTimeout(() => document.getElementById('confirmBtn').classList.remove('hidden'), 300); window.closeConfirm = oldClose; };
+                return;
+            }
+
+            const newId = crypto.randomUUID();
+            const txData = {
+                name: originalName, contactKey: name, amount, paidAmount: 0, type: typeInput, dueDate: dueDateInput, isPaid: false, createdAt: new Date().toISOString(),
+                timeline: [{ date: new Date().toISOString(), type: 'created', note: `Pencatatan awal: Dana ${typeInput === 'owe' ? 'Masuk' : 'Keluar'} sejumlah ${formatRp(amount)}.` }]
+            };
+            
+            let updatedContact = { ...currentContact, originalName: originalName };
+            if (typeInput === 'lent') updatedContact.totalLent += amount;
+
+            try {
+                await setDoc(doc(db, 'artifacts', appId, 'users', state.userId, 'transactions', newId), txData);
+                await setDoc(doc(db, 'artifacts', appId, 'users', state.userId, 'contacts', name), updatedContact);
+                
+                document.getElementById('formAddTx').reset();
+                window.showToast('Transaksi berhasil disimpan ke Cloud.');
+                window.setActiveTab('tagihan');
+            } catch (error) { 
+                console.error(error); 
+                window.showToast('Gagal menyimpan transaksi.', 'error');
+            } finally { 
+                btn.disabled = false; btn.innerHTML = '<i class="ph ph-floppy-disk text-xl"></i> Simpan ke Cloud'; 
+            }
+        };
+
+        window.openPayModal = function(id) {
+            const tx = state.transactions.find(t => t.id === id);
+            if(!tx) return;
+            state.activeTx = tx;
+            const remaining = tx.amount - tx.paidAmount;
+            document.getElementById('payModalTitle').innerHTML = tx.type === 'lent' ? `<i class="ph-fill ph-coins text-emerald-500 text-2xl"></i> Terima Dana` : `<i class="ph-fill ph-wallet text-rose-500 text-2xl"></i> Bayar Cicilan`;
+            document.getElementById('payModalRemaining').textContent = formatRp(remaining);
+            document.getElementById('payAmountInput').max = remaining;
+            window.toggleModal('payModal', true);
+        };
+
+        window.setPayAmount = function(multiplier) {
+            if(!state.activeTx) return;
+            const remaining = state.activeTx.amount - state.activeTx.paidAmount;
+            document.getElementById('payAmountInput').value = Math.floor(remaining * multiplier);
+        };
+
+        window.submitPayment = async function(e) {
+            e.preventDefault();
+            if (!state.userId || !state.activeTx) return;
+            const btn = document.getElementById('btnSubmitPay');
+            btn.disabled = true; btn.innerHTML = '<i class="ph ph-spinner-gap animate-spin text-xl"></i> Memproses...';
+            
+            const payAmount = parseFloat(document.getElementById('payAmountInput').value);
+            const tx = state.activeTx;
+            const remaining = tx.amount - tx.paidAmount;
+            
+            if (payAmount <= 0 || payAmount > remaining) {
+                btn.disabled = false; btn.innerHTML = '<i class="ph-fill ph-check-circle text-xl"></i> Konfirmasi Transaksi';
+                return;
+            }
+
+            const newPaidAmount = tx.paidAmount + payAmount;
+            const isNowPaid = newPaidAmount >= tx.amount;
+            const updatedTx = { ...tx, paidAmount: newPaidAmount, isPaid: isNowPaid, timeline: [ ...tx.timeline, { date: new Date().toISOString(), type: 'payment', note: `Pembukuan pembayaran terekam: ${formatRp(payAmount)}` }] };
+            const contactName = tx.contactKey;
+            let contact = state.contacts[contactName];
+            
+            if (contact) {
+                contact.totalPaid = (contact.totalPaid || 0) + payAmount;
+                contact.score = Math.min(100, contact.score + 5);
+                if (contact.score > 30 && contact.isBlacklisted) contact.isBlacklisted = false;
+            }
+
+            try {
+                await updateDoc(doc(db, 'artifacts', appId, 'users', state.userId, 'transactions', tx.id), updatedTx);
+                if (contact) await updateDoc(doc(db, 'artifacts', appId, 'users', state.userId, 'contacts', contactName), contact);
+                window.showToast('Pembayaran berhasil dikonfirmasi.');
+                window.toggleModal('payModal', false);
+            } catch (error) { 
+                console.error(error); 
+                window.showToast('Gagal memproses pembayaran.', 'error');
+            } finally { 
+                btn.disabled = false; btn.innerHTML = '<i class="ph-fill ph-check-circle text-xl"></i> Konfirmasi Transaksi'; 
+            }
+        };
+
+        window.confirmDelete = function(id) {
+            document.getElementById('confirmTitle').textContent = 'Konfirmasi Penghapusan';
+            document.getElementById('confirmMessage').textContent = 'Aksi ini bersifat permanen. Catatan yang dihapus dari Cloud tidak dapat dipulihkan.';
+            state.confirmAction = async () => { 
+                if(!state.userId) return;
+                try {
+                    await deleteDoc(doc(db, 'artifacts', appId, 'users', state.userId, 'transactions', id)); 
+                    window.showToast('Transaksi berhasil dihapus.');
+                } catch(e) { window.showToast('Gagal menghapus.', 'error'); }
+            };
+            window.toggleModal('confirmModal', true);
+        };
+
+        window.confirmManualBlacklist = function(name) {
+            document.getElementById('confirmTitle').textContent = 'Tandai Masuk Blacklist';
+            document.getElementById('confirmMessage').textContent = `Apakah Anda yakin memasukkan entitas ${name} ke Daftar Peringatan secara paksa? Skor kreditnya akan diturunkan menjadi 0.`;
+            state.confirmAction = async () => {
+                if(!state.userId) return;
+                const contact = state.contacts[name];
+                if (contact) {
+                    try {
+                        await updateDoc(doc(db, 'artifacts', appId, 'users', state.userId, 'contacts', name), { score: 0, isBlacklisted: true });
+                        window.showToast(`${name} dimasukkan ke daftar peringatan.`);
+                    } catch(e) { window.showToast('Gagal memperbarui relasi.', 'error'); }
+                }
+            };
+            window.toggleModal('confirmModal', true);
+        };
+
+        window.confirmForgive = function(name) {
+            document.getElementById('confirmTitle').textContent = 'Restorasi Reputasi';
+            document.getElementById('confirmMessage').textContent = `Apakah Anda yakin merestorasi status ${name}? Skor kredit akan direset (60) agar dapat bertransaksi kembali.`;
+            state.confirmAction = async () => {
+                if(!state.userId) return;
+                const contact = state.contacts[name];
+                if (contact) {
+                    try {
+                        await updateDoc(doc(db, 'artifacts', appId, 'users', state.userId, 'contacts', name), { score: 60, isBlacklisted: false });
+                        window.showToast(`Reputasi ${name} telah direstorasi.`);
+                    } catch(e) { window.showToast('Gagal merestorasi.', 'error'); }
+                }
+            };
+            window.toggleModal('confirmModal', true);
+        };
+
+        document.getElementById('confirmBtn').addEventListener('click', async () => {
+            const btn = document.getElementById('confirmBtn');
+            const originalText = btn.textContent;
+            btn.innerHTML = '<i class="ph ph-spinner-gap animate-spin"></i>'; btn.disabled = true;
+            if(typeof state.confirmAction === 'function') await state.confirmAction();
+            window.closeConfirm();
+            btn.innerHTML = originalText; btn.disabled = false;
+        });
+
+        window.closeConfirm = function() { window.toggleModal('confirmModal', false); };
+
+        window.openDetailModal = function(id) {
+            const tx = state.transactions.find(t => t.id === id);
+            if(!tx) return;
+            state.activeTx = tx;
+            
+            const aiSection = document.getElementById('aiSection');
+            if (!tx.isPaid && tx.type === 'lent') aiSection.classList.remove('hidden');
+            else aiSection.classList.add('hidden');
+
+            const timelineContainer = document.getElementById('historyTimeline');
+            let html = '';
+            const sortedTimeline = [...tx.timeline].sort((a,b) => new Date(b.date) - new Date(a.date));
+            sortedTimeline.forEach(item => {
+                const d = new Date(item.date);
+                const isPay = item.type === 'payment';
+                const icon = isPay ? `<i class="ph-fill ph-check-circle text-xs text-white"></i>` : `<i class="ph-fill ph-info text-xs text-white"></i>`;
+                const bg = isPay ? 'bg-emerald-500' : 'bg-indigo-500';
+                
+                html += `
+                    <div class="relative pl-8 py-2">
+                        <div class="absolute left-[-10px] top-4 w-6 h-6 rounded-full ${bg} flex items-center justify-center shadow-sm z-10 ring-4 ring-white dark:ring-zinc-900">${icon}</div>
+                        <div class="bg-zinc-50 dark:bg-zinc-950 p-4 rounded-xl border border-zinc-100 dark:border-zinc-800/50">
+                            <span class="block text-[10px] text-zinc-400 font-bold mb-1 tracking-wider uppercase">${d.toLocaleDateString('id-ID')} ${d.toLocaleTimeString('id-ID', {hour:'2-digit', minute:'2-digit'})}</span>
+                            <p class="text-sm font-bold leading-snug">${item.note}</p>
+                        </div>
+                    </div>
+                `;
+            });
+            timelineContainer.innerHTML = html;
+            window.toggleModal('detailModal', true);
+        };
+
+        window.generateWA = function() {
+            const tx = state.activeTx;
+            if(!tx) return;
+            const sisa = tx.amount - tx.paidAmount;
+            const tone = document.getElementById('aiToneSelect').value;
+            let msg = "";
+            if(tone === 'ramah') msg = `Halo ${tx.name}, salam sejahtera. Mohon maaf menyita waktunya sebentar. Saya sekadar ingin mengingatkan kembali terkait catatan tagihan sejumlah ${formatRp(sisa)} yang telah jatuh tempo. Apabila sudah memungkinkan, mohon dibantu konfirmasinya ya. Terima kasih banyak atas kerja samanya. 🙏`;
+            else if(tone === 'kasual') msg = `Halo ${tx.name}! Gimana kabarnya? Semoga baik ya. Btw, ini cuma ngingetin soal tagihan yang Rp${formatRp(sisa)} itu lho. Kalo lagi ada waktu dan kondisinya udah aman, boleh tolong bantu diselesaikan ya. Kabarin aja kalo ada kendala. Thanks bro/sis! ☕️`;
+            else if(tone === 'tegas') msg = `Yth. ${tx.name}, ini adalah pengingat formal mengenai tagihan Anda sebesar ${formatRp(sisa)} yang telah melewati batas waktu pembayaran yang disepakati. Mohon segera melakukan pelunasan hari ini guna mempertahankan skor kredit dan menghindari sanksi administratif (Blacklist) di sistem kami.`;
+            else msg = `Assalamualaikum wr wb ${tx.name}, afwan sebelumnya sekadar mengingatkan kembali terkait tanggungan/amanah sebesar ${formatRp(sisa)}. Semoga Allah senantiasa melancarkan rezeki dan urusannya agar amanah ini dapat segera diselesaikan dengan baik. Aamiin ya Rabbal Alamin. 😇🕌`;
+            window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, '_blank');
+        };
+
+        window.openQrModal = function(id) {
+            const tx = state.transactions.find(t => t.id === id);
+            if(!tx) return;
+            state.activeTx = tx;
+            window.toggleModal('qrModal', true);
+        };
+        
+        window.handleQrSimulate = function() {
+            const id = state.activeTx.id;
+            window.toggleModal('qrModal', false);
+            setTimeout(() => window.openPayModal(id), 200); 
+        };
+
+        // Panggil init saat modul selesai dimuat
+        initApp();
+    </script>
+</body>
+</html>
