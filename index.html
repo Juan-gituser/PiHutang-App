@@ -600,23 +600,55 @@
     </div>
 
     <!-- Application Logic -->
-    <script type="module">
-        // Import Firebase modular SDK
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getAuth, signInAnonymously, onAuthStateChanged, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-        import { getFirestore, doc, setDoc, onSnapshot, collection, deleteDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
-
-        // Environment variables / configurations
-        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : { /* Fallback mock config if needed, otherwise it will error gracefully */ };
-        const appId = typeof __app_id !== 'undefined' ? __app_id : 'pihutang-app-id';
-        const initialToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
-        
-        let app, auth, db;
-        try {
-            app = initializeApp(firebaseConfig);
-            auth = getAuth(app);
-            db = getFirestore(app);
-        } catch(e) { console.warn("Firebase not properly configured via env vars, running in degraded mode.", e); }
+    <script>
+        // Penyimpanan lokal: tidak memerlukan variabel Firebase khusus dari platform lain.
+        // Data tersimpan di browser perangkat ini dan aplikasi dapat langsung dideploy ke Vercel.
+        const STORAGE_KEY = 'pihutang-data-v1';
+        const readStore = () => {
+            try { return JSON.parse(localStorage.getItem(STORAGE_KEY)) || { transactions: {}, contacts: {} }; }
+            catch { return { transactions: {}, contacts: {} }; }
+        };
+        const writeStore = (store) => {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(store));
+            window.dispatchEvent(new Event('pihutang-storage-updated'));
+        };
+        const db = {};
+        const auth = {};
+        const appId = 'pihutang';
+        const initialToken = null;
+        const localUser = { uid: 'local-user' };
+        const doc = (...args) => ({ collectionName: args.at(-2), id: args.at(-1) });
+        const collection = (...args) => ({ collectionName: args.at(-1) });
+        const setDoc = async (ref, data) => {
+            const store = readStore();
+            store[ref.collectionName] ||= {};
+            store[ref.collectionName][ref.id] = data;
+            writeStore(store);
+        };
+        const deleteDoc = async (ref) => {
+            const store = readStore();
+            delete store[ref.collectionName]?.[ref.id];
+            writeStore(store);
+        };
+        const onSnapshot = (ref, callback) => {
+            const emit = () => {
+                const records = Object.entries(readStore()[ref.collectionName] || {});
+                callback({ docs: records.map(([id, data]) => ({ id, data: () => data })) });
+            };
+            emit();
+            window.addEventListener('pihutang-storage-updated', emit);
+            window.addEventListener('storage', emit);
+            return () => {
+                window.removeEventListener('pihutang-storage-updated', emit);
+                window.removeEventListener('storage', emit);
+            };
+        };
+        const signInAnonymously = async () => ({ user: localUser });
+        const signInWithCustomToken = signInAnonymously;
+        const onAuthStateChanged = (_auth, callback) => {
+            queueMicrotask(() => callback(localUser));
+            return () => {};
+        };
 
         // Application State
         const state = {
@@ -917,7 +949,7 @@
                         <td class="p-4 text-sm font-bold">${formatRp(c.totalLent)}</td>
                         <td class="p-4 text-right">
                             ${!c.isBlacklisted ? `
-                                <button onclick="window.confirmManualBlacklist('${name}')" class="px-3 py-2 bg-rose-50 hover:bg-rose-100 text-rose-600 dark:bg-rose-500/10 dark:hover:bg-rose-500/20 rounded-lg text-xs font-bold transition-colors inline-flex items-center gap-1">
+                                <button onclick='window.confirmManualBlacklist(${JSON.stringify(name)})' class="px-3 py-2 bg-rose-50 hover:bg-rose-100 text-rose-600 dark:bg-rose-500/10 dark:hover:bg-rose-500/20 rounded-lg text-xs font-bold transition-colors inline-flex items-center gap-1">
                                     <i class="ph-fill ph-flag"></i> Tandai Blacklist
                                 </button>
                             ` : `
@@ -954,7 +986,7 @@
                         <td class="p-4 font-black text-lg capitalize">${name}</td>
                         <td class="p-4 font-black text-xl text-rose-500">${c.score}</td>
                         <td class="p-4 text-right">
-                            <button onclick="window.confirmForgive('${name}')" class="px-4 py-2 bg-emerald-500 hover:bg-emerald-600 text-white rounded-lg text-xs font-black transition-all shadow-md inline-flex items-center gap-2">
+                            <button onclick='window.confirmForgive(${JSON.stringify(name)})' class="px-4 py-2 bg-emerald-500 hover:bg-emerald-600 text-white rounded-lg text-xs font-black transition-all shadow-md inline-flex items-center gap-2">
                                 <i class="ph-fill ph-handshake text-lg"></i> Maafkan & Restorasi
                             </button>
                         </td>
