@@ -55,11 +55,29 @@
         
         /* Hide element utility */
         .hidden-tab { display: none !important; }
+        .splash-logo { animation: splashLogo 1.1s cubic-bezier(.16,1,.3,1) both; }
+        .splash-text { animation: splashText .7s .35s ease-out both; }
+        .login-card { animation: loginCard .65s cubic-bezier(.16,1,.3,1) both; }
+        @keyframes splashLogo { from { opacity: 0; transform: scale(.55) rotate(-12deg); } 70% { transform: scale(1.08) rotate(3deg); } to { opacity: 1; transform: scale(1) rotate(0); } }
+        @keyframes splashText { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes loginCard { from { opacity: 0; transform: translateY(28px) scale(.97); } to { opacity: 1; transform: translateY(0) scale(1); } }
+        .setting-row { width: 100%; display: flex; align-items: center; justify-content: space-between; gap: 1rem; padding: .85rem 1rem; text-align: left; font-weight: 700; }
+        .setting-row span { color: #71717a; font-weight: 600; }
+        .setting-row input { accent-color: #4f46e5; width: 1.1rem; height: 1.1rem; }
+        .setting-action { border: 1px solid #e4e4e7; border-radius: .75rem; padding: .8rem; font-weight: 700; transition: background .2s; }
+        .setting-action:hover { background: #f4f4f5; }
+        .dark .setting-action { border-color: #27272a; }
+        .dark .setting-action:hover { background: #27272a; }
     </style>
 </head>
 <body class="bg-zinc-50 text-zinc-900 transition-colors duration-300 antialiased overflow-hidden">
-    
-    <div id="app" class="flex h-screen w-full">
+    <div id="splashScreen" class="fixed inset-0 z-[200] flex flex-col items-center justify-center overflow-hidden bg-gradient-to-br from-indigo-700 via-indigo-600 to-violet-700 text-white">
+        <div class="absolute -top-24 -left-20 h-72 w-72 rounded-full bg-white/10 blur-3xl"></div><div class="absolute -bottom-20 -right-16 h-80 w-80 rounded-full bg-violet-300/20 blur-3xl"></div>
+        <div class="splash-logo relative flex h-24 w-24 items-center justify-center rounded-[2rem] bg-white text-indigo-600 shadow-2xl"><i class="ph-fill ph-wallet text-5xl"></i></div>
+        <div class="splash-text mt-6 text-center"><h1 class="text-4xl font-black tracking-tighter">PiHutang</h1><p class="mt-2 text-sm font-bold text-indigo-100">Catat. Pantau. Tenang.</p></div>
+    </div>
+    <div id="loginScreen" class="hidden fixed inset-0 z-[190] overflow-y-auto bg-zinc-50 p-5 dark:bg-zinc-950"><div class="min-h-full flex items-center justify-center py-8"><form id="loginForm" class="login-card w-full max-w-md rounded-[2rem] bg-white p-8 shadow-2xl ring-1 ring-zinc-200 dark:bg-zinc-900 dark:ring-zinc-800" onsubmit="window.handleLogin(event)"><div class="mb-8 text-center"><div class="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-indigo-600 text-white shadow-lg"><i class="ph-fill ph-wallet text-3xl"></i></div><h2 id="loginTitle" class="text-2xl font-black">Masuk ke PiHutang</h2><p id="loginDescription" class="mt-2 text-sm font-medium text-zinc-500">Masukkan password untuk melanjutkan.</p></div><div id="loginNameGroup"><label class="mb-2 block text-sm font-bold">Nama lengkap</label><input id="loginName" maxlength="32" autocomplete="name" placeholder="Contoh: Dinda Pratama" class="w-full rounded-xl border border-zinc-200 bg-zinc-50 p-4 font-bold outline-none transition focus:ring-2 focus:ring-indigo-500 dark:border-zinc-800 dark:bg-zinc-950 dark:text-white" /></div><label class="mb-2 mt-5 block text-sm font-bold">Password</label><input id="loginPassword" type="password" required minlength="4" autocomplete="current-password" placeholder="Minimal 4 karakter" class="w-full rounded-xl border border-zinc-200 bg-zinc-50 p-4 font-bold outline-none transition focus:ring-2 focus:ring-indigo-500 dark:border-zinc-800 dark:bg-zinc-950 dark:text-white" /><p id="loginError" class="mt-3 hidden text-sm font-bold text-rose-600"></p><button class="mt-6 flex w-full items-center justify-center gap-2 rounded-xl bg-indigo-600 py-4 font-black text-white shadow-lg transition hover:bg-indigo-700"><i class="ph-fill ph-lock-key text-xl"></i> Lanjutkan</button><p class="mt-4 text-center text-xs font-medium text-zinc-400">Akun tersimpan secara lokal di perangkat ini.</p></form></div></div>
+    <div id="app" class="hidden h-screen w-full">
         
         <!-- Mobile Sidebar Overlay -->
         <div id="mobileOverlay" class="fixed inset-0 bg-black/60 z-40 hidden backdrop-blur-sm transition-opacity cursor-pointer" onclick="window.toggleSidebar(false)"></div>
@@ -89,6 +107,7 @@
 
         <!-- Main Content Area -->
         <main class="flex-1 h-full overflow-y-auto relative p-6 lg:p-10 scroll-smooth dark:bg-zinc-950 dark:text-zinc-100">
+            <div class="absolute right-6 top-5 z-30 flex items-center gap-2 lg:right-10 lg:top-7"><button onclick="window.openSettingsModal()" aria-label="Pengaturan" class="flex h-11 w-11 items-center justify-center rounded-xl border border-zinc-200 bg-white text-zinc-600 shadow-sm transition hover:bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-300"><i class="ph ph-gear-six text-xl"></i></button><button onclick="window.openProfileModal()" class="flex items-center gap-2 rounded-xl border border-zinc-200 bg-white py-1.5 pl-1.5 pr-3 shadow-sm transition hover:bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-900"><span id="profileAvatar" class="flex h-8 w-8 items-center justify-center rounded-lg bg-indigo-600 text-xs font-black text-white">P</span><span id="profileName" class="hidden max-w-28 truncate text-sm font-black sm:block">Profil</span></button></div>
             
             <!-- Mobile Header Toggle -->
             <div class="lg:hidden flex items-center gap-4 mb-8 pb-4 border-b border-zinc-200 dark:border-zinc-800">
@@ -311,11 +330,12 @@
                 </header>
 
                 <!-- Bagian 1: Konsep Dasar -->
-                <div class="space-y-4">
-                    <h3 class="text-xl font-black flex items-center gap-2 border-b border-zinc-200 dark:border-zinc-800 pb-3 text-zinc-800 dark:text-zinc-100">
-                        <i class="ph-fill ph-lightbulb text-amber-500 text-2xl"></i> 1. Konsep Dasar Sistem
-                    </h3>
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <details class="group rounded-2xl bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 shadow-sm">
+                    <summary class="list-none cursor-pointer select-none px-5 py-4 flex items-center justify-between gap-4 hover:bg-zinc-50 dark:hover:bg-zinc-800/60 rounded-2xl transition-colors">
+                        <span class="text-xl font-black flex items-center gap-2 text-zinc-800 dark:text-zinc-100"><i class="ph-fill ph-lightbulb text-amber-500 text-2xl"></i> 1. Konsep Dasar Sistem</span>
+                        <i class="ph ph-caret-down text-xl text-zinc-400 transition-transform duration-200 group-open:rotate-180"></i>
+                    </summary>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 px-5 pb-5">
                         <div class="p-5 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl">
                             <h4 class="font-black flex items-center gap-2 mb-2"><i class="ph-fill ph-trend-up text-emerald-500"></i> Uang Keluar (Piutang) vs Uang Masuk (Hutang)</h4>
                             <p class="text-sm text-zinc-500 font-medium leading-relaxed"><strong>Uang Keluar:</strong> Uang Anda yang dipinjam oleh orang lain. Ini menambah Saldo Bersih Anda.<br/><strong>Uang Masuk:</strong> Anda meminjam uang dari orang lain. Ini mengurangi akumulasi Saldo Bersih Anda.</p>
@@ -325,14 +345,15 @@
                             <p class="text-sm text-zinc-500 font-medium leading-relaxed">Setiap rekan akan memulai dengan <strong>Skor 100 (5 Bintang)</strong>. Melakukan pembayaran/cicilan akan menambah +5 poin. Skor di bawah 30 otomatis memicu blokir/blacklist.</p>
                         </div>
                     </div>
-                </div>
+                </details>
 
                 <!-- Bagian 2: Panduan Teknis -->
-                <div class="space-y-4">
-                    <h3 class="text-xl font-black flex items-center gap-2 border-b border-zinc-200 dark:border-zinc-800 pb-3 text-zinc-800 dark:text-zinc-100 mt-8">
-                        <i class="ph-fill ph-wrench text-zinc-500 text-2xl"></i> 2. Panduan Teknis (Langkah-demi-Langkah)
-                    </h3>
-                    <div class="grid grid-cols-1 gap-6">
+                <details class="group rounded-2xl bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 shadow-sm">
+                    <summary class="list-none cursor-pointer select-none px-5 py-4 flex items-center justify-between gap-4 hover:bg-zinc-50 dark:hover:bg-zinc-800/60 rounded-2xl transition-colors">
+                        <span class="text-xl font-black flex items-center gap-2 text-zinc-800 dark:text-zinc-100"><i class="ph-fill ph-wrench text-zinc-500 text-2xl"></i> 2. Panduan Teknis (Langkah-demi-Langkah)</span>
+                        <i class="ph ph-caret-down text-xl text-zinc-400 transition-transform duration-200 group-open:rotate-180"></i>
+                    </summary>
+                    <div class="grid grid-cols-1 gap-6 px-5 pb-5">
                         
                         <!-- Teknis 1: Mencatat Transaksi -->
                         <div class="p-6 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl flex flex-col gap-6 shadow-sm">
@@ -474,7 +495,7 @@
                         </div>
 
                     </div>
-                </div>
+                </details>
             </section>
         </main>
     </div>
@@ -599,10 +620,16 @@
         </div>
     </div>
 
+    <div id="profileModal" class="hidden fixed inset-0 z-[150] flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm"><div class="modal-zoom max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-3xl bg-white p-7 shadow-2xl dark:bg-zinc-900"><div class="mb-6 flex items-center justify-between"><h3 class="text-xl font-black">👤 Halaman Profil</h3><button onclick="window.closeProfileModal()" class="rounded-lg p-2 text-zinc-400 hover:bg-zinc-100"><i class="ph ph-x text-xl"></i></button></div><div class="rounded-2xl bg-gradient-to-br from-indigo-600 to-violet-600 p-6 text-white"><div class="flex items-center gap-4"><span id="profileAvatarLarge" class="flex h-20 w-20 items-center justify-center rounded-3xl bg-white/20 text-2xl font-black">P</span><div><p id="profileNameLarge" class="text-xl font-black">Profil</p><p id="profileStatus" class="mt-1 text-sm font-bold text-indigo-100">Free Account</p></div></div></div><div class="my-5 divide-y divide-zinc-100 rounded-2xl border border-zinc-200 px-4 dark:divide-zinc-800 dark:border-zinc-800"><div class="py-3 text-sm"><span class="text-zinc-500">Username</span><p id="profileUsername" class="font-bold"></p></div><div class="py-3 text-sm"><span class="text-zinc-500">Email</span><p id="profileEmail" class="font-bold"></p></div><div class="py-3 text-sm"><span class="text-zinc-500">Nomor WhatsApp</span><p id="profileWhatsapp" class="font-bold"></p></div><div class="py-3 text-sm"><span class="text-zinc-500">Tanggal bergabung</span><p id="profileJoined" class="font-bold"></p></div></div><div class="grid grid-cols-2 gap-3"><button onclick="window.openEditProfile()" class="rounded-xl bg-indigo-600 py-3 font-bold text-white">Edit Profil</button><button onclick="window.changePassword()" class="rounded-xl bg-zinc-100 py-3 font-bold dark:bg-zinc-800">Ganti Password</button><button onclick="document.getElementById('photoInput').click()" class="rounded-xl bg-zinc-100 py-3 font-bold dark:bg-zinc-800">Ganti Foto</button><button onclick="window.logoutProfile()" class="rounded-xl bg-rose-50 py-3 font-bold text-rose-600">Logout</button></div><input id="photoInput" type="file" accept="image/*" class="hidden" onchange="window.changePhoto(event)" /></div></div>
+    <div id="settingsModal" class="hidden fixed inset-0 z-[150] flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm"><div class="modal-zoom max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-3xl bg-white p-7 shadow-2xl dark:bg-zinc-900"><div class="mb-5 flex items-center justify-between"><h3 class="text-xl font-black">⚙️ Pengaturan</h3><button onclick="window.closeSettingsModal()" class="rounded-lg p-2 text-zinc-400 hover:bg-zinc-100"><i class="ph ph-x text-xl"></i></button></div><div class="space-y-5 text-sm"><section><h4 class="mb-2 font-black">⚙️ Umum</h4><div class="divide-y rounded-xl border dark:border-zinc-800"><button class="setting-row">Bahasa <span>Indonesia ›</span></button><button class="setting-row">Zona Waktu <span>Asia/Jakarta ›</span></button><button class="setting-row">Mata Uang <span>Rp ›</span></button><button class="setting-row">Format Tanggal <span>DD/MM/YYYY ›</span></button></div></section><section><h4 class="mb-2 font-black">🔔 Notifikasi</h4><div class="divide-y rounded-xl border dark:border-zinc-800"><label class="setting-row">Reminder <input type="checkbox" checked /></label><label class="setting-row">Email <input type="checkbox" /></label><label class="setting-row">Browser <input type="checkbox" checked /></label></div></section><section><h4 class="mb-2 font-black">🔐 Keamanan</h4><div class="divide-y rounded-xl border dark:border-zinc-800"><button onclick="window.changePassword()" class="setting-row">Ganti Password <span>›</span></button><button class="setting-row">PIN <span>›</span></button><button class="setting-row">2FA <span>›</span></button></div></section><section><h4 class="mb-2 font-black">☁️ Data</h4><div class="grid grid-cols-2 gap-2"><button class="setting-action">Backup</button><button class="setting-action">Restore</button><button class="setting-action">Export Excel</button><button class="setting-action">Export PDF</button></div></section><section><h4 class="mb-2 font-black">🤖 AI Assistant</h4><div class="divide-y rounded-xl border dark:border-zinc-800"><label class="setting-row">Aktifkan AI <input type="checkbox" checked /></label><label class="setting-row">Smart Reminder <input type="checkbox" checked /></label><label class="setting-row">Ringkasan Mingguan <input type="checkbox" /></label></div></section><section><h4 class="mb-2 font-black">ℹ️ Tentang</h4><div class="divide-y rounded-xl border dark:border-zinc-800"><div class="setting-row">Versi <span>1.0.0</span></div><button class="setting-row">Privacy Policy <span>›</span></button><button class="setting-row">Terms <span>›</span></button><button class="setting-row">Hubungi Kami <span>›</span></button></div></section></div></div></div>
+
+    <div id="editProfileModal" class="hidden fixed inset-0 z-[160] flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm"><form onsubmit="window.saveProfile(event)" class="modal-zoom w-full max-w-md rounded-3xl bg-white p-7 shadow-2xl dark:bg-zinc-900"><div class="mb-5 flex items-center justify-between"><h3 class="text-xl font-black">Edit Profil</h3><button type="button" onclick="window.closeEditProfile()" class="p-2 text-zinc-400"><i class="ph ph-x text-xl"></i></button></div><label class="mb-2 block text-sm font-bold">Nama lengkap</label><input id="editName" required maxlength="32" class="mb-4 w-full rounded-xl border p-3 font-bold dark:border-zinc-800 dark:bg-zinc-950" /><label class="mb-2 block text-sm font-bold">Username</label><input id="editUsername" required maxlength="32" class="mb-4 w-full rounded-xl border p-3 font-bold dark:border-zinc-800 dark:bg-zinc-950" /><label class="mb-2 block text-sm font-bold">Email</label><input id="editEmail" type="email" class="mb-4 w-full rounded-xl border p-3 font-bold dark:border-zinc-800 dark:bg-zinc-950" /><label class="mb-2 block text-sm font-bold">Nomor WhatsApp</label><input id="editWhatsapp" type="tel" class="w-full rounded-xl border p-3 font-bold dark:border-zinc-800 dark:bg-zinc-950" /><button class="mt-6 w-full rounded-xl bg-indigo-600 py-3.5 font-black text-white">Simpan Profil</button></form></div>
+
+    <div id="settingsModal" class="hidden fixed inset-0 z-[180] flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm"><div class="modal-zoom max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-3xl bg-white p-7 shadow-2xl dark:bg-zinc-900"><div class="mb-5 flex items-center justify-between"><h3 class="text-xl font-black">Pengaturan</h3><button onclick="window.closeSettingsModal()" class="p-2 text-zinc-400"><i class="ph ph-x text-xl"></i></button></div><form onsubmit="window.saveSettings(event)" class="space-y-5"><section><h4 class="mb-2 font-black">Umum</h4><div class="grid grid-cols-2 gap-3"><label class="text-xs font-bold">Bahasa<select id="setLanguage" class="mt-1 w-full rounded-lg border p-2"><option>Indonesia</option><option>English</option></select></label><label class="text-xs font-bold">Zona Waktu<select id="setTimezone" class="mt-1 w-full rounded-lg border p-2"><option>Asia/Jakarta</option><option>Asia/Makassar</option><option>Asia/Jayapura</option></select></label><label class="text-xs font-bold">Mata Uang<select id="setCurrency" class="mt-1 w-full rounded-lg border p-2"><option value="IDR">Rp (IDR)</option><option value="USD">USD</option></select></label><label class="text-xs font-bold">Format Tanggal<select id="setDateFormat" class="mt-1 w-full rounded-lg border p-2"><option>DD/MM/YYYY</option><option>MM/DD/YYYY</option><option>YYYY-MM-DD</option></select></label></div></section><section><h4 class="mb-2 font-black">Notifikasi</h4><div class="divide-y rounded-xl border"><label class="setting-row">Pengingat jatuh tempo<input id="setReminder" type="checkbox" /></label><label class="setting-row">Pengingat harian<input id="setDaily" type="checkbox" /></label><label class="setting-row">Email notifikasi<input id="setEmailNotif" type="checkbox" /></label><label class="setting-row">Browser notification<input id="setBrowserNotif" type="checkbox" /></label></div></section><section><h4 class="mb-2 font-black">Keamanan</h4><div class="grid grid-cols-3 gap-2"><button type="button" onclick="window.changePassword()" class="setting-action">Password</button><button type="button" onclick="window.setPin()" class="setting-action">PIN</button><button type="button" onclick="window.toggle2FA()" class="setting-action">2FA</button></div></section><section><h4 class="mb-2 font-black">Data</h4><div class="grid grid-cols-2 gap-2"><button type="button" onclick="window.backupData()" class="setting-action">Backup</button><button type="button" onclick="document.getElementById('restoreInput').click()" class="setting-action">Restore</button><button type="button" onclick="window.exportCsv()" class="setting-action">Export Excel</button><button type="button" onclick="window.exportPdf()" class="setting-action">Export PDF</button></div><input id="restoreInput" type="file" accept="application/json" class="hidden" onchange="window.restoreData(event)" /><button type="button" onclick="window.clearAllData()" class="mt-3 w-full rounded-xl bg-rose-50 py-3 text-sm font-bold text-rose-600">Hapus Semua Data Transaksi</button></section><section><h4 class="mb-2 font-black">AI Assistant</h4><div class="divide-y rounded-xl border"><label class="setting-row">Aktifkan AI<input id="setAi" type="checkbox" /></label><label class="setting-row">Smart Reminder<input id="setSmartReminder" type="checkbox" /></label><label class="setting-row">Ringkasan mingguan<input id="setWeeklySummary" type="checkbox" /></label></div></section><section><h4 class="mb-2 font-black">Tentang</h4><div class="rounded-xl border p-4 text-sm text-zinc-500"><p class="font-bold text-zinc-800">PiHutang versi 1.0.0</p><button type="button" onclick="window.showInfo('Kebijakan Privasi')" class="mt-2 mr-4 underline">Privacy Policy</button><button type="button" onclick="window.showInfo('Syarat & Ketentuan')" class="mt-2 underline">Terms</button></div></section><button class="w-full rounded-xl bg-indigo-600 py-3.5 font-black text-white">Simpan Pengaturan</button></form></div></div>
+    <div id="passwordModal" class="hidden fixed inset-0 z-[190] flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm"><form onsubmit="window.savePassword(event)" class="modal-zoom w-full max-w-sm rounded-3xl bg-white p-7 shadow-2xl"><h3 class="mb-5 text-xl font-black">Ganti Password</h3><label class="mb-2 block text-sm font-bold">Password lama</label><input id="oldPassword" type="password" required class="mb-4 w-full rounded-xl border p-3" /><label class="mb-2 block text-sm font-bold">Password baru</label><input id="newPassword" type="password" minlength="4" required class="mb-4 w-full rounded-xl border p-3" /><label class="mb-2 block text-sm font-bold">Konfirmasi password baru</label><input id="confirmPassword" type="password" minlength="4" required class="w-full rounded-xl border p-3" /><p id="passwordError" class="mt-3 hidden text-sm font-bold text-rose-600"></p><div class="mt-6 flex gap-3"><button type="button" onclick="window.closePasswordModal()" class="flex-1 rounded-xl bg-zinc-100 py-3 font-bold">Batal</button><button class="flex-1 rounded-xl bg-indigo-600 py-3 font-bold text-white">Simpan</button></div></form></div>
     <!-- Application Logic -->
     <script>
-        // Penyimpanan lokal: tidak memerlukan variabel Firebase khusus dari platform lain.
-        // Data tersimpan di browser perangkat ini dan aplikasi dapat langsung dideploy ke Vercel.
+        // Penyimpanan lokal: tidak membutuhkan konfigurasi Firebase saat dideploy ke Vercel.
         const STORAGE_KEY = 'pihutang-data-v1';
         const readStore = () => {
             try { return JSON.parse(localStorage.getItem(STORAGE_KEY)) || { transactions: {}, contacts: {} }; }
@@ -649,6 +676,65 @@
             queueMicrotask(() => callback(localUser));
             return () => {};
         };
+
+        document.querySelectorAll('#settingsModal')[0].id = 'settingsModalLegacy';
+        const PROFILE_KEY = 'pihutang-profile-v1';
+        const SETTINGS_KEY = 'pihutang-settings-v1';
+        const defaultSettings = { language: 'Indonesia', timezone: 'Asia/Jakarta', currency: 'IDR', dateFormat: 'DD/MM/YYYY', reminder: true, daily: false, emailNotif: false, browserNotif: false, ai: true, smartReminder: true, weeklySummary: false, pin: false, twoFA: false };
+        const getSettings = () => { try { return { ...defaultSettings, ...(JSON.parse(localStorage.getItem(SETTINGS_KEY)) || {}) }; } catch { return { ...defaultSettings }; } };
+        const saveSettingsLocal = (settings) => localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
+        const avatarColors = ['bg-indigo-600', 'bg-violet-600', 'bg-emerald-600', 'bg-rose-600', 'bg-amber-500', 'bg-sky-600'];
+        const getProfile = () => { try { return JSON.parse(localStorage.getItem(PROFILE_KEY)) || null; } catch { return null; } };
+        const saveLocalProfile = (profile) => localStorage.setItem(PROFILE_KEY, JSON.stringify(profile));
+        const passwordValue = (value) => btoa(encodeURIComponent(value));
+        const applyProfile = () => {
+            const profile = getProfile() || {};
+            const name = profile.name || 'Profil', initial = name.trim().charAt(0).toUpperCase() || 'P';
+            const color = avatarColors[(name.charCodeAt(0) || 0) % avatarColors.length];
+            ['profileAvatar', 'profileAvatarLarge'].forEach((id) => { const el = document.getElementById(id); if (el) { el.textContent = initial; el.className = el.className.replace(/bg-(indigo|violet|emerald|rose|amber|sky)-(500|600)/g, '') + ' ' + color; } });
+            const values = { profileName: name, profileNameLarge: name, profileUsername: '@' + (profile.username || 'belum-diatur'), profileEmail: profile.email || 'Belum diatur', profileWhatsapp: profile.whatsapp || 'Belum diatur', profileJoined: profile.joinedAt ? new Date(profile.joinedAt).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' }) : '-', profileStatus: (profile.status || 'Free') + ' Account' };
+            Object.entries(values).forEach(([id, value]) => { const el = document.getElementById(id); if (el) el.textContent = value; });
+        };
+        const showLogin = () => {
+            const profile = getProfile(), hasPassword = Boolean(profile?.password);
+            document.getElementById('loginTitle').textContent = hasPassword ? 'Masuk ke PiHutang' : 'Buat akun PiHutang';
+            document.getElementById('loginDescription').textContent = hasPassword ? 'Masukkan password untuk melanjutkan.' : 'Buat akun lokal pribadi Anda.';
+            document.getElementById('loginNameGroup').classList.toggle('hidden', hasPassword);
+            document.getElementById('loginName').required = !hasPassword;
+            document.getElementById('loginPassword').autocomplete = hasPassword ? 'current-password' : 'new-password';
+            document.getElementById('loginError').classList.add('hidden');
+            document.getElementById('loginScreen').classList.remove('hidden');
+            (hasPassword ? document.getElementById('loginPassword') : document.getElementById('loginName')).focus();
+        };
+        window.handleLogin = (event) => {
+            event.preventDefault(); const profile = getProfile(), password = document.getElementById('loginPassword').value, error = document.getElementById('loginError');
+            if (profile?.password && profile.password !== passwordValue(password)) { error.textContent = 'Password tidak sesuai.'; error.classList.remove('hidden'); return; }
+            if (!profile?.password) { const name = document.getElementById('loginName').value.trim(); if (!name) return; saveLocalProfile({ name, username: name.toLowerCase().replace(/\s+/g, '.'), email: '', whatsapp: '', joinedAt: new Date().toISOString(), status: 'Free', password: passwordValue(password) }); }
+            applyProfile(); document.getElementById('loginScreen').classList.add('hidden'); const app = document.getElementById('app'); app.classList.remove('hidden'); app.classList.add('fade-in');
+        };
+        window.openProfileModal = () => { applyProfile(); document.getElementById('profileModal').classList.remove('hidden'); };
+        window.closeProfileModal = () => document.getElementById('profileModal').classList.add('hidden');
+        window.openSettingsModal = () => { const s = getSettings(); const fields = { setLanguage: s.language, setTimezone: s.timezone, setCurrency: s.currency, setDateFormat: s.dateFormat, setReminder: s.reminder, setDaily: s.daily, setEmailNotif: s.emailNotif, setBrowserNotif: s.browserNotif, setAi: s.ai, setSmartReminder: s.smartReminder, setWeeklySummary: s.weeklySummary }; Object.entries(fields).forEach(([id, value]) => { const el = document.getElementById(id); if (el) el.type === 'checkbox' ? el.checked = value : el.value = value; }); document.getElementById('settingsModal').classList.remove('hidden'); };
+        window.closeSettingsModal = () => document.getElementById('settingsModal').classList.add('hidden');
+        window.openEditProfile = () => { const p = getProfile() || {}; ['Name','Username','Email','Whatsapp'].forEach((key) => document.getElementById('edit' + key).value = p[key.toLowerCase()] || ''); document.getElementById('editProfileModal').classList.remove('hidden'); };
+        window.closeEditProfile = () => document.getElementById('editProfileModal').classList.add('hidden');
+        window.saveProfile = (event) => { event.preventDefault(); const p = getProfile() || {}; p.name = document.getElementById('editName').value.trim(); p.username = document.getElementById('editUsername').value.trim().replace(/^@/, ''); p.email = document.getElementById('editEmail').value.trim(); p.whatsapp = document.getElementById('editWhatsapp').value.trim(); saveLocalProfile(p); applyProfile(); window.closeEditProfile(); };
+        window.changePassword = () => { document.getElementById('passwordError').classList.add('hidden'); ['oldPassword', 'newPassword', 'confirmPassword'].forEach((id) => document.getElementById(id).value = ''); document.getElementById('passwordModal').classList.remove('hidden'); };
+        window.closePasswordModal = () => document.getElementById('passwordModal').classList.add('hidden');
+        window.savePassword = (event) => { event.preventDefault(); const p = getProfile() || {}, oldValue = document.getElementById('oldPassword').value, next = document.getElementById('newPassword').value, confirm = document.getElementById('confirmPassword').value, error = document.getElementById('passwordError'); if (p.password !== passwordValue(oldValue)) { error.textContent = 'Password lama tidak sesuai.'; error.classList.remove('hidden'); return; } if (next !== confirm) { error.textContent = 'Konfirmasi password baru tidak sama.'; error.classList.remove('hidden'); return; } p.password = passwordValue(next); saveLocalProfile(p); window.closePasswordModal(); window.alert('Password berhasil diubah.'); };
+        window.changePhoto = (event) => { const file = event.target.files[0]; if (!file) return; const reader = new FileReader(); reader.onload = () => { const p = getProfile() || {}; p.photo = reader.result; saveLocalProfile(p); window.alert('Foto profil tersimpan.'); }; reader.readAsDataURL(file); };
+        window.saveSettings = (event) => { event.preventDefault(); const settings = { ...getSettings(), language: document.getElementById('setLanguage').value, timezone: document.getElementById('setTimezone').value, currency: document.getElementById('setCurrency').value, dateFormat: document.getElementById('setDateFormat').value, reminder: document.getElementById('setReminder').checked, daily: document.getElementById('setDaily').checked, emailNotif: document.getElementById('setEmailNotif').checked, browserNotif: document.getElementById('setBrowserNotif').checked, ai: document.getElementById('setAi').checked, smartReminder: document.getElementById('setSmartReminder').checked, weeklySummary: document.getElementById('setWeeklySummary').checked }; saveSettingsLocal(settings); if (settings.browserNotif && 'Notification' in window && Notification.permission === 'default') Notification.requestPermission(); window.closeSettingsModal(); window.alert('Pengaturan berhasil disimpan.'); };
+        const downloadFile = (name, content, type) => { const url = URL.createObjectURL(new Blob([content], { type })); const link = document.createElement('a'); link.href = url; link.download = name; link.click(); URL.revokeObjectURL(url); };
+        window.backupData = () => downloadFile('pihutang-backup.json', JSON.stringify({ profile: getProfile(), settings: getSettings(), data: readStore(), createdAt: new Date().toISOString() }, null, 2), 'application/json');
+        window.restoreData = (event) => { const file = event.target.files[0]; if (!file) return; const reader = new FileReader(); reader.onload = () => { try { const backup = JSON.parse(reader.result); if (!backup.data?.transactions || !backup.data?.contacts) throw new Error(); writeStore(backup.data); if (backup.profile) saveLocalProfile(backup.profile); if (backup.settings) saveSettingsLocal({ ...defaultSettings, ...backup.settings }); applyProfile(); window.alert('Backup berhasil dipulihkan.'); } catch { window.alert('File backup tidak valid.'); } }; reader.readAsText(file); };
+        window.exportCsv = () => { const rows = [['Nama','Tipe','Nominal','Terbayar','Tenggat','Status'], ...Object.values(readStore().transactions || {}).map((tx) => [tx.name, tx.type === 'lent' ? 'Piutang' : 'Utang', tx.amount, tx.paidAmount, tx.dueDate, tx.isPaid ? 'Lunas' : 'Belum Lunas'])]; downloadFile('pihutang-transaksi.csv', rows.map((row) => row.map((value) => '"' + String(value ?? '').replaceAll('"', '""') + '"').join(',')).join('\n'), 'text/csv;charset=utf-8'); };
+        window.exportPdf = () => { const printWindow = window.open('', '_blank'); if (!printWindow) return; const rows = Object.values(readStore().transactions || {}).map((tx) => `<tr><td>${tx.name}</td><td>${tx.type === 'lent' ? 'Piutang' : 'Utang'}</td><td>${formatRp(tx.amount)}</td><td>${tx.dueDate}</td></tr>`).join(''); printWindow.document.write(`<title>PiHutang - Laporan</title><h1>Laporan PiHutang</h1><p>Dicetak ${new Date().toLocaleDateString('id-ID')}</p><table border="1" cellpadding="8" cellspacing="0"><tr><th>Nama</th><th>Jenis</th><th>Nominal</th><th>Tenggat</th></tr>${rows}</table>`); printWindow.document.close(); printWindow.print(); };
+        window.clearAllData = () => { if (!window.confirm('Hapus seluruh transaksi dan kontak? Tindakan ini tidak dapat dibatalkan.')) return; writeStore({ transactions: {}, contacts: {} }); window.alert('Seluruh data transaksi telah dihapus.'); };
+        window.setPin = () => { const pin = window.prompt('Masukkan PIN aplikasi (4–6 digit), atau kosongkan untuk menonaktifkan:'); if (pin === null) return; if (pin && !/^\d{4,6}$/.test(pin)) return window.alert('PIN harus 4–6 digit.'); const s = getSettings(); s.pin = Boolean(pin); saveSettingsLocal(s); window.alert(pin ? 'PIN aplikasi diaktifkan.' : 'PIN aplikasi dinonaktifkan.'); };
+        window.toggle2FA = () => { const s = getSettings(); s.twoFA = !s.twoFA; saveSettingsLocal(s); window.alert(s.twoFA ? 'Verifikasi 2 langkah diaktifkan untuk perangkat ini.' : 'Verifikasi 2 langkah dinonaktifkan.'); };
+        window.showInfo = (title) => window.alert(`${title} tersedia pada versi layanan online PiHutang. Aplikasi lokal ini tidak mengirim data Anda ke server.`);
+        window.logoutProfile = () => { window.closeProfileModal(); document.getElementById('app').classList.add('hidden'); document.getElementById('loginPassword').value = ''; showLogin(); };
+        window.setTimeout(() => { document.getElementById('splashScreen').classList.add('hidden'); showLogin(); }, 1400);
 
         // Application State
         const state = {
@@ -949,7 +1035,7 @@
                         <td class="p-4 text-sm font-bold">${formatRp(c.totalLent)}</td>
                         <td class="p-4 text-right">
                             ${!c.isBlacklisted ? `
-                                <button onclick='window.confirmManualBlacklist(${JSON.stringify(name)})' class="px-3 py-2 bg-rose-50 hover:bg-rose-100 text-rose-600 dark:bg-rose-500/10 dark:hover:bg-rose-500/20 rounded-lg text-xs font-bold transition-colors inline-flex items-center gap-1">
+                                <button onclick="window.confirmManualBlacklist('${name}')" class="px-3 py-2 bg-rose-50 hover:bg-rose-100 text-rose-600 dark:bg-rose-500/10 dark:hover:bg-rose-500/20 rounded-lg text-xs font-bold transition-colors inline-flex items-center gap-1">
                                     <i class="ph-fill ph-flag"></i> Tandai Blacklist
                                 </button>
                             ` : `
@@ -986,7 +1072,7 @@
                         <td class="p-4 font-black text-lg capitalize">${name}</td>
                         <td class="p-4 font-black text-xl text-rose-500">${c.score}</td>
                         <td class="p-4 text-right">
-                            <button onclick='window.confirmForgive(${JSON.stringify(name)})' class="px-4 py-2 bg-emerald-500 hover:bg-emerald-600 text-white rounded-lg text-xs font-black transition-all shadow-md inline-flex items-center gap-2">
+                            <button onclick="window.confirmForgive('${name}')" class="px-4 py-2 bg-emerald-500 hover:bg-emerald-600 text-white rounded-lg text-xs font-black transition-all shadow-md inline-flex items-center gap-2">
                                 <i class="ph-fill ph-handshake text-lg"></i> Maafkan & Restorasi
                             </button>
                         </td>
