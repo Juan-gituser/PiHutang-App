@@ -663,9 +663,18 @@
         import { getFirestore, doc, setDoc, getDoc, updateDoc, deleteDoc, onSnapshot, collection, query, getDocs } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         // Konfigurasi Cloud Environment
-        const appId = typeof __app_id !== 'undefined' ? __app_id : 'pihutang-cloud-default';
-        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {};
-        
+    const appId = typeof __app_id !== 'undefined' ? __app_id : 'pihutang-cloud-default';
+        const firebaseConfig = {
+            apiKey: "AIzaSyDLG3TdS3LSlPh9htiAxrtXFcWwOkCZJHk",
+            authDomain: "pihutang-4ce96.firebaseapp.com",
+            projectId: "pihutang-4ce96",
+            storageBucket: "pihutang-4ce96.firebasestorage.app",
+            messagingSenderId: "430022722638",
+            appId: "1:430022722638:web:8f064e6b11fefff0f8af1f",
+            measurementId: "G-MYRDPQRQ8E"
+        };
+
+        // Inisialisasi Firebase
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
